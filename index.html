@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equity Sprint - Login</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.login-box { background: #fff; border-radius: 16px; padding: 48px 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); width: 380px; text-align: center; }
+.login-box h1 { font-size: 22px; font-weight: 800; color: #1f2328; margin-bottom: 8px; }
+.login-box p { font-size: 14px; color: #656d76; margin-bottom: 28px; }
+.field { margin-bottom: 16px; text-align: left; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #424a53; margin-bottom: 6px; }
+.field input { width: 100%; padding: 10px 14px; border: 1px solid #d0d7de; border-radius: 8px; font-size: 14px; outline: none; }
+.field input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.12); }
+button { width: 100%; padding: 12px; background: #1f2328; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+button:hover { background: #32383f; }
+.error { color: #cf222e; font-size: 13px; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+<div class="login-box">
+  <h1>Equity Sprint</h1>
+  <p>プロンプト設計図を閲覧するにはログインしてください</p>
+  <form id="login-form">
+    <div class="field">
+      <label>ユーザー名</label>
+      <input type="text" id="username" autocomplete="username" autofocus>
+    </div>
+    <div class="field">
+      <label>パスワード</label>
+      <input type="password" id="password" autocomplete="current-password">
+    </div>
+    <button type="submit">ログイン</button>
+  </form>
+  <div class="error" id="error">ユーザー名またはパスワードが正しくありません</div>
+</div>
+<script>
+const HASH = 'bfb591991f1b31864f864030c83bbd7e71fb98df58549698c0efc57e7767e220';
+
+// Check session
+if (sessionStorage.getItem('es_auth') === HASH) {
+  window.location.replace('app.html');
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const data = new TextEncoder().encode(u + ':' + p);
+  const hashBuf = await crypto.subtle.digest('SHA-256', data);
+  const hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  if (hashHex === HASH) {
+    sessionStorage.setItem('es_auth', HASH);
+    window.location.replace('app.html');
+  } else {
+    document.getElementById('error').style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キーワード作成くん - フローチャート</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', sans-serif; background: #fff; }
+
+#canvas {
+  width: 100vw; height: 100vh; position: relative;
+  background-color: #fff;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+#world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+
+/* ── Nodes ── */
+.node {
+  position: absolute; width: 200px;
+  background: #fff; border: 2px solid #d0d7de; border-radius: 12px;
+  color: #1f2328; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  cursor: grab; user-select: none; transition: box-shadow 0.15s;
+}
+.node:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.13); z-index: 5; }
+.node.dragging { box-shadow: 0 8px 30px rgba(0,0,0,0.18); z-index: 100; cursor: grabbing; opacity: 0.92; }
+
+.node-inner {
+  padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+}
+.node-icon { font-size: 22px; flex-shrink: 0; }
+.node-label { font-weight: 700; font-size: 13.5px; line-height: 1.4; }
+.node-peek {
+  padding: 0 16px 12px; font-size: 11.5px; color: #656d76; line-height: 1.5;
+  border-top: 1px solid #eef0f2; padding-top: 8px; margin-top: -2px;
+  cursor: pointer;
+}
+.node-peek:hover { color: #0969da; }
+.node-peek .hint { color: #0969da; font-size: 11px; margin-top: 4px; }
+
+/* Color-coded borders */
+.node[data-type="start"] { border-color: #0969da; }
+.node[data-type="start"] .node-label { color: #0969da; }
+.node[data-type="core"] { border-color: #8250df; }
+.node[data-type="core"] .node-label { color: #8250df; }
+.node[data-type="rule-good"] { border-color: #1a7f37; }
+.node[data-type="rule-good"] .node-label { color: #1a7f37; }
+.node[data-type="rule-bad"] { border-color: #cf222e; }
+.node[data-type="rule-bad"] .node-label { color: #cf222e; }
+.node[data-type="output"] { border-color: #bf8700; }
+.node[data-type="output"] .node-label { color: #9a6700; }
+.node[data-type="end"] { border-color: #1f2328; }
+
+/* ── Modal ── */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 1000; justify-content: center; align-items: center;
+  backdrop-filter: blur(3px);
+}
+#modal-overlay.open { display: flex; }
+
+#modal {
+  background: #fff; border-radius: 16px; width: 720px; max-width: 90vw;
+  max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+#modal-header {
+  padding: 24px 32px 16px; display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px solid #e8ecf0; position: sticky; top: 0; background: #fff;
+  border-radius: 16px 16px 0 0; z-index: 1;
+}
+#modal-header .icon { font-size: 28px; }
+#modal-header .title { font-size: 20px; font-weight: 800; flex: 1; }
+#modal-close {
+  width: 36px; height: 36px; border: none; background: #f6f8fa;
+  border-radius: 8px; font-size: 18px; cursor: pointer; color: #656d76;
+  display: flex; align-items: center; justify-content: center;
+}
+#modal-close:hover { background: #e8ecf0; color: #1f2328; }
+
+#modal-body {
+  padding: 24px 32px 32px; font-size: 14.5px; line-height: 1.9; color: #424a53;
+}
+#modal-body p { margin: 6px 0; }
+#modal-body ul { padding-left: 20px; margin: 6px 0; }
+#modal-body li { margin: 5px 0; }
+#modal-body strong { color: #1f2328; }
+#modal-body .sub { color: #888; font-size: 13px; }
+#modal-body .section { margin-top: 20px; padding-top: 16px; border-top: 1px dashed #e8ecf0; }
+#modal-body h4 { font-size: 15px; color: #1f2328; margin-bottom: 6px; font-weight: 700; }
+
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 5px;
+  font-size: 12px; margin: 2px 3px; font-weight: 600;
+}
+.tag-green { background: #dafbe1; color: #1a7f37; }
+.tag-red { background: #ffebe9; color: #cf222e; }
+.tag-blue { background: #ddf4ff; color: #0969da; }
+.tag-yellow { background: #fff8c5; color: #9a6700; }
+
+.example-block {
+  background: #f6f8fa; border-radius: 8px; padding: 16px 18px; margin: 12px 0;
+  border-left: 4px solid #0969da;
+}
+.example-block .company { font-weight: 700; color: #0969da; font-size: 14px; }
+.example-block .catch { font-weight: 800; color: #1f2328; font-size: 16px; margin: 6px 0; }
+.example-block .body-copy { color: #424a53; font-size: 13.5px; line-height: 1.8; }
+
+/* ── Controls ── */
+#controls {
+  position: fixed; top: 16px; right: 16px; display: flex; gap: 6px; z-index: 10;
+}
+#controls button {
+  background: #fff; border: 1px solid #d0d7de; color: #424a53;
+  padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;
+}
+#controls button:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
+
+#title-bar {
+  position: fixed; top: 16px; left: 16px; color: #1f2328; z-index: 10;
+  font-size: 18px; font-weight: 800;
+}
+#title-bar span { color: #656d76; font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+#minimap {
+  position: fixed; bottom: 16px; right: 16px; width: 200px; height: 120px;
+  background: rgba(255,255,255,0.95); border: 1px solid #d0d7de; border-radius: 8px;
+  overflow: hidden; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+#minimap-viewport {
+  position: absolute; border: 2px solid #0969da; background: rgba(9,105,218,0.06);
+  pointer-events: none; border-radius: 2px;
+}
+</style>
+</head>
+<body>
+
+<div id="title-bar">キーワード作成くん<span>プロンプト設計図</span></div>
+<div id="controls">
+  <button onclick="resetView()">Reset</button>
+</div>
+
+<div id="canvas"><div id="world"></div></div>
+<div id="minimap"><div id="minimap-viewport"></div></div>
+
+<!-- Modal -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <div id="modal-header">
+      <span class="icon" id="modal-icon"></span>
+      <span class="title" id="modal-title"></span>
+      <button id="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// Auth guard - redirect to login if not authenticated
+const HASH = 'bfb591991f1b31864f864030c83bbd7e71fb98df58549698c0efc57e7767e220';
+if (sessionStorage.getItem('es_auth') !== HASH) {
+  window.location.replace('index.html');
+}
+
+const nodes = [
+  {
+    id: 'role', x: 60, y: 200, type: 'start', icon: '🎭', title: '役割',
+    peek: '投資家向け広報のプロ',
+    body: `
+      <p><strong>あなたは投資家向け広報のプロです。</strong></p>
+      <p>ユーザーの指示に基づいて、対象企業の核心的な価値を伝えるキーワードとボディコピーを作成する役割を担います。</p>
+      <p>作成にあたっては、推奨事項・NG事項を遵守し、ペルソナに響く理由も合わせて説明してください。</p>
+    `
+  },
+  {
+    id: 'exec', x: 360, y: 60, type: 'core', icon: '⚡', title: '実行内容',
+    peek: 'キーワード＋ボディコピー × 3案',
+    body: `
+      <p><strong>キーワード作成の推奨事項</strong>と<strong>NG事項</strong>を遵守しながら、対象企業の<strong>核心的な価値</strong>を伝える日本語のキーワードとボディコピーのセットを<strong>3案</strong>作成してください。</p>
+      <ul>
+        <li>そのコピーがターゲットの<strong>ペルソナに響く理由</strong>も教えてください</li>
+        <li>入力として<strong>バリュエーション分析の結果</strong>を受け取ります</li>
+      </ul>
+    `
+  },
+  {
+    id: 'policy', x: 360, y: 240, type: 'core', icon: '🎯', title: '最重要方針',
+    peek: '中長期戦略 × 企業の変化に重点',
+    body: `
+      <p>バリュエーション分析の結果を入力として受け取りますが、その中でも特に以下に<strong>重点を置いた</strong>アウトプットを作成してください：</p>
+      <ul>
+        <li><strong>中長期戦略として見据えていること</strong> — 企業が今後どこに向かおうとしているか</li>
+        <li><strong>これからの企業の変化</strong> — 現在進行形の変革、今後の成長の方向性</li>
+      </ul>
+      <p class="sub">※ 過去の実績アピールよりも「未来のストーリー」を重視してください。</p>
+    `
+  },
+  {
+    id: 'persona', x: 360, y: 420, type: 'start', icon: '👥', title: 'ペルソナ（読者）',
+    peek: '機関投資家 + 個人投資家',
+    body: `
+      <p>主な読者は以下の2タイプの投資家です：</p>
+      <ul>
+        <li><strong>長期的視野を持つ機関投資家</strong> — 企業の本質的価値を見極めようとするプロフェッショナル</li>
+        <li><strong>将来性を重視する個人投資家</strong> — 成長ストーリーに共感して投資判断をする層</li>
+      </ul>
+      <p class="sub">※ どちらにも伝わる表現が求められます。専門家向けに振り切るのではなく、一般層にも配慮した表現を心がけてください。</p>
+    `
+  },
+  {
+    id: 'recommend', x: 680, y: 40, type: 'rule-good', icon: '✅', title: '推奨事項',
+    peek: '強み × 未来 × 独自性',
+    body: `
+      <h4>アピールポイント：対象企業の「強み」と「未来のポテンシャル」と「独自性」に焦点を当ててアピールする</h4>
+      <ul>
+        <li><span class="tag tag-green">競合優位性</span> 競合他社は実現できていない優位性を構築できている点が伝わる表現を心がける。</li>
+        <li><span class="tag tag-green">未来のポテンシャル</span> 今が天井ではなくこれから評価が上がるような取り組みをしている、またはしようとしていることが伝わる表現を心がける。</li>
+        <li><span class="tag tag-green">独自性のアピール</span> サービス独自の価値観を反映した目新しい表現を心がける。</li>
+      </ul>
+      <div class="section">
+        <h4>一般層への配慮</h4>
+        <p>専門用語や業界用語は必要最小限にとどめ、一般的な人にも伝わるよう配慮する。</p>
+      </div>
+      <div class="section">
+        <h4>時代性・トレンドへの敏感さ</h4>
+        <p>現在の社会的背景や直近1年以内のトレンドを意識し、既視感のないフレッシュな言葉遣いを意識する。</p>
+      </div>
+    `
+  },
+  {
+    id: 'ng', x: 680, y: 320, type: 'rule-bad', icon: '🚫', title: '絶対禁止事項',
+    peek: '古いワード / バズワード / 専門用語',
+    body: `
+      <h4>古いワードや概念</h4>
+      <ul>
+        <li><span class="tag tag-red">NG</span> 概念が出てきてから<strong>5年以上経過</strong>している古い言葉は使わない（例：「OMO」）</li>
+        <li><span class="tag tag-red">NG</span> 「サステナブル」のような、すでに一般化しすぎて新鮮味のないワードも避ける</li>
+      </ul>
+      <div class="section">
+        <h4>使い古された言葉やバズワード</h4>
+        <ul>
+          <li><span class="tag tag-red">NG</span> 「プラットフォーマー」など、流行りすぎて意味が薄れてしまった言葉を安易に使うのは避ける</li>
+          <li><span class="tag tag-red">NG</span> とってつけたようなバズワードや流行語を無理に盛り込むこともNG</li>
+          <li><span class="tag tag-yellow">条件付き</span> バズワードを使う場合は必ず<strong>固有的補足を後置</strong>すること</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h4>ターゲットや文脈への配慮</h4>
+        <ul>
+          <li>読み手（ターゲット）が本当に理解できるか、共感できるかを重視する</li>
+          <li>業界内だけで通じる専門用語や略語、売上・KPIなどの事業数値のアピールは避ける</li>
+        </ul>
+        <p class="sub">※ ただし内部検証では数値や指標を参照して良い。コピー本文で露出を抑える目的。</p>
+      </div>
+      <div class="section">
+        <h4>時代性・トレンドへの敏感さ</h4>
+        <p>今の時代感覚からズレていないか常にチェックする。新しい価値観や社会的背景にも目を向ける。</p>
+      </div>
+    `
+  },
+  {
+    id: 'output', x: 1020, y: 60, type: 'output', icon: '📝', title: '出力フォーマット',
+    peek: 'キャッチ20字 + ボディ120字',
+    body: `
+      <h4>キャッチコピー</h4>
+      <p><strong>20字以内</strong>の固有性ある単語または短句</p>
+      <div class="section">
+        <h4>ボディコピー（120字程度）</h4>
+        <ul>
+          <li><strong>一般層にも伝わる</strong> — 専門家でなくても読んで理解できる</li>
+          <li><strong>固有補足入り</strong> — 企業名やサービス名など具体的な要素を含める</li>
+          <li><strong>能動態</strong> — 受動態を避け、主語が行動する形で書く</li>
+          <li><strong>過度な数字無し</strong> — 売上やKPIなどの事業数値を前面に出さない</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    id: 'examples', x: 1020, y: 300, type: 'output', icon: '📋', title: '文体例（3社）',
+    peek: '吉積HD / AnyMind / GENDA',
+    body: `
+      <div class="example-block">
+        <div class="company">吉積ホールディングス</div>
+        <div class="catch">「クラウドオーケストレーター」</div>
+        <div class="body-copy">私たちは、Google Cloudを基盤とし、単なる導入支援を超えた『クラウドオーケストレーション』をグローバルに展開しています。技術、プロセス、組織を統合し、お客様のビジネス成長を支える戦略パートナーとして、未来の成功を共に描きます。</div>
+      </div>
+      <div class="example-block">
+        <div class="company">AnyMind</div>
+        <div class="catch">「Make Every Business Borderless — 次世代のビジネスインフラへ」</div>
+        <div class="body-copy">昨今のインターネット・テクノロジーの進化によって、誰もが世界を相手にビジネスに挑戦できる時代が到来しました。しかし、世界には今でも、情報の非対称性や不透明な商習慣、地理的な制限など、ビジネスにおけるさまざまなボーダー（障害）が溢れています。AnyMind Groupは、情熱とアイデアを持つすべての人や企業に、これらの課題を解決するための統合型プラットフォームを提供することで、誰もがビジネスをより簡単に、そしてグローバルに展開できる世界を実現していきます。</div>
+      </div>
+      <div class="example-block">
+        <div class="company">GENDA</div>
+        <div class="catch">「世界をつなぐエンタメ経済圏」</div>
+        <div class="body-copy">GENDAが目指すのは、エンターテインメントを軸にした"世界をつなぐプラットフォーム企業"への進化です。アミューズメント施設、プライズ、IPコンテンツを通じて、アジアから北米へと広がるリアルな体験接点を構築。今や私たちは、単なる施設運営を超えて、グローバルな「体験経済圏」の中核を担う存在へと変貌を遂げています。そしてその中心には、日本発のアニメやキャラクターといったIPがあり、世界中のファンの"推し活"をリアルに支える次世代のプラットフォームとして、GENDAが新たなスタンダードをつくっていきます。</div>
+      </div>
+    `
+  },
+  {
+    id: 'final', x: 1360, y: 200, type: 'end', icon: '🔍', title: '最終確認事項',
+    peek: '重視すべきことを最初に宣言',
+    body: `
+      <p>冒頭で最重要方針として伝えていますが、<strong>キーワード・ボディコピーを作成する上であなたが重視すべきこと</strong>を<strong>最初に宣言した上で</strong>キーワードを作成してください。</p>
+      <div class="section">
+        <h4>つまり出力の流れは：</h4>
+        <ol style="padding-left:20px;">
+          <li>「私が重視するポイントは…」と明示</li>
+          <li>キーワード＋ボディコピーを3案作成</li>
+          <li>各案がペルソナに響く理由を説明</li>
+        </ol>
+      </div>
+    `
+  },
+];
+
+const edges = [
+  ['role', 'exec'],
+  ['role', 'policy'],
+  ['role', 'persona'],
+  ['exec', 'recommend'],
+  ['exec', 'ng'],
+  ['policy', 'recommend'],
+  ['policy', 'ng'],
+  ['persona', 'ng'],
+  ['recommend', 'output'],
+  ['recommend', 'examples'],
+  ['ng', 'output'],
+  ['ng', 'examples'],
+  ['output', 'final'],
+  ['examples', 'final'],
+];
+
+// ── Render ──
+const world = document.getElementById('world');
+const canvasEl = document.getElementById('canvas');
+let scale = 0.85, tx = 40, ty = 40;
+let panDragging = false, panLastX, panLastY;
+
+// Node drag state
+let nodeDrag = null; // { id, startX, startY, origLeft, origTop }
+
+const nodeEls = {};
+nodes.forEach(n => {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.id = 'node-' + n.id;
+  el.dataset.type = n.type;
+  el.dataset.nid = n.id;
+  el.style.left = n.x + 'px';
+  el.style.top = n.y + 'px';
+  el.innerHTML = `
+    <div class="node-inner">
+      <span class="node-icon">${n.icon}</span>
+      <span class="node-label">${n.title}</span>
+    </div>
+    <div class="node-peek" data-modal="${n.id}">
+      ${n.peek}
+      <div class="hint">クリックで詳細を表示 →</div>
+    </div>
+  `;
+  world.appendChild(el);
+  nodeEls[n.id] = el;
+});
+
+// ── SVG edges ──
+const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+svg.style.cssText = 'position:absolute;top:0;left:0;width:5000px;height:2000px;pointer-events:none;';
+world.insertBefore(svg, world.firstChild);
+
+function getRect(id) {
+  const el = nodeEls[id];
+  const l = parseFloat(el.style.left);
+  const t = parseFloat(el.style.top);
+  return { l, t, r: l + el.offsetWidth, b: t + el.offsetHeight, cy: t + el.offsetHeight / 2 };
+}
+
+function drawEdges() {
+  svg.innerHTML = `<defs>
+    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8b949e"/>
+    </marker>
+  </defs>`;
+  edges.forEach(([from, to]) => {
+    const a = getRect(from);
+    const b = getRect(to);
+    const sx = a.r, sy = a.cy;
+    const ex = b.l, ey = b.cy;
+    const dx = Math.max((ex - sx) * 0.45, 30);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${sx} ${sy} C ${sx + dx} ${sy}, ${ex - dx} ${ey}, ${ex} ${ey}`);
+    path.setAttribute('stroke', '#b0b8c1');
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('marker-end', 'url(#ah)');
+    svg.appendChild(path);
+  });
+}
+
+// ── Modal ──
+function openModal(id) {
+  const n = nodes.find(n => n.id === id);
+  if (!n) return;
+  document.getElementById('modal-icon').textContent = n.icon;
+  document.getElementById('modal-title').textContent = n.title;
+  document.getElementById('modal-body').innerHTML = n.body;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay') && !e.target.closest('#modal-close')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Node drag ──
+world.addEventListener('mousedown', e => {
+  const nodeEl = e.target.closest('.node');
+  if (!nodeEl) return;
+
+  // If clicking the peek area, open modal instead
+  if (e.target.closest('.node-peek')) {
+    const nid = e.target.closest('.node-peek').dataset.modal;
+    if (nid) openModal(nid);
+    return;
+  }
+
+  e.stopPropagation();
+  const nid = nodeEl.dataset.nid;
+  nodeDrag = {
+    id: nid,
+    startX: e.clientX,
+    startY: e.clientY,
+    origLeft: parseFloat(nodeEl.style.left),
+    origTop: parseFloat(nodeEl.style.top),
+    moved: false,
+  };
+  nodeEl.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', e => {
+  if (nodeDrag) {
+    const dx = (e.clientX - nodeDrag.startX) / scale;
+    const dy = (e.clientY - nodeDrag.startY) / scale;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) nodeDrag.moved = true;
+    const el = nodeEls[nodeDrag.id];
+    el.style.left = (nodeDrag.origLeft + dx) + 'px';
+    el.style.top = (nodeDrag.origTop + dy) + 'px';
+    drawEdges();
+    return;
+  }
+  if (!panDragging) return;
+  tx += e.clientX - panLastX;
+  ty += e.clientY - panLastY;
+  panLastX = e.clientX;
+  panLastY = e.clientY;
+  applyTransform();
+});
+
+window.addEventListener('mouseup', e => {
+  if (nodeDrag) {
+    const el = nodeEls[nodeDrag.id];
+    el.classList.remove('dragging');
+    // Update the node data
+    const n = nodes.find(n => n.id === nodeDrag.id);
+    if (n) { n.x = parseFloat(el.style.left); n.y = parseFloat(el.style.top); }
+    nodeDrag = null;
+    return;
+  }
+  panDragging = false;
+});
+
+// ── Canvas pan ──
+canvasEl.addEventListener('mousedown', e => {
+  if (e.target.closest('.node')) return;
+  panDragging = true;
+  panLastX = e.clientX;
+  panLastY = e.clientY;
+});
+
+// ── Zoom ──
+canvasEl.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvasEl.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const oldScale = scale;
+  scale *= e.deltaY > 0 ? 0.92 : 1.08;
+  scale = Math.max(0.15, Math.min(3, scale));
+  tx = mx - (mx - tx) * (scale / oldScale);
+  ty = my - (my - ty) * (scale / oldScale);
+  applyTransform();
+}, { passive: false });
+
+function applyTransform() {
+  world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  updateMinimap();
+}
+
+function resetView() {
+  scale = 0.85; tx = 40; ty = 40; applyTransform();
+}
+
+function updateMinimap() {
+  const mm = document.getElementById('minimap');
+  const vp = document.getElementById('minimap-viewport');
+  const mmW = mm.offsetWidth, mmH = mm.offsetHeight;
+  const worldW = 1800, worldH = 700;
+  const s = Math.min(mmW / worldW, mmH / worldH);
+  vp.style.width = (canvasEl.offsetWidth / scale) * s + 'px';
+  vp.style.height = (canvasEl.offsetHeight / scale) * s + 'px';
+  vp.style.left = (-tx / scale) * s + 'px';
+  vp.style.top = (-ty / scale) * s + 'px';
+}
+
+requestAnimationFrame(() => { drawEdges(); applyTransform(); });
+window.addEventListener('resize', () => { drawEdges(); updateMinimap(); });
+</script>
+</body>
+</html>
