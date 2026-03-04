@@ -69,9 +69,8 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 .node:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-2px); cursor: pointer; }
 .node::after {
   content: '詳細を見る →'; display: block; font-size: 10.5px; color: #0969da;
-  padding: 0 16px 10px; opacity: 0; transition: opacity 0.15s;
+  padding: 0 16px 10px;
 }
-.node:hover::after { opacity: 1; }
 
 .node-inner { padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
 .node-icon { font-size: 20px; flex-shrink: 0; }
