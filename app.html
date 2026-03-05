@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>キーワード作成くん - フローチャート</title>
+<title>Equity Sprint - プロンプト設計図</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', sans-serif; background: #fff; }
@@ -22,6 +22,19 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 #canvas:active { cursor: grabbing; }
 #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 
+/* ── Tabs ── */
+#tab-bar {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; background: #f0f2f5; border-radius: 10px; padding: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #d0d7de;
+}
+.tab {
+  padding: 8px 20px; border-radius: 7px; cursor: pointer; font-size: 13px;
+  font-weight: 600; color: #656d76; transition: all 0.15s; white-space: nowrap;
+}
+.tab:hover { color: #1f2328; }
+.tab.active { background: #fff; color: #1f2328; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
 /* ── Layers ── */
 .layer {
   position: absolute; border-radius: 16px; border: 2px dashed;
@@ -36,31 +49,28 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
   align-items: center; justify-content: center; font-size: 12px;
   color: #fff; font-weight: 800; flex-shrink: 0;
 }
-.layer-cards {
-  display: flex; gap: 14px; flex-wrap: wrap;
-}
+.layer-cards { display: flex; gap: 14px; flex-wrap: wrap; }
 
 .layer[data-color="blue"]   { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.25); }
 .layer[data-color="blue"] .layer-label { color: #0969da; }
 .layer[data-color="blue"] .num { background: #0969da; }
-
 .layer[data-color="purple"] { background: rgba(130,80,223,0.04); border-color: rgba(130,80,223,0.25); }
 .layer[data-color="purple"] .layer-label { color: #8250df; }
 .layer[data-color="purple"] .num { background: #8250df; }
-
 .layer[data-color="green"]  { background: rgba(26,127,55,0.04); border-color: rgba(26,127,55,0.2); }
 .layer[data-color="green"] .layer-label { color: #1a7f37; }
 .layer[data-color="green"] .num { background: #1a7f37; }
-
 .layer[data-color="amber"]  { background: rgba(191,135,0,0.04); border-color: rgba(191,135,0,0.2); }
 .layer[data-color="amber"] .layer-label { color: #9a6700; }
 .layer[data-color="amber"] .num { background: #bf8700; }
-
 .layer[data-color="gray"]   { background: rgba(31,35,40,0.03); border-color: rgba(31,35,40,0.2); }
 .layer[data-color="gray"] .layer-label { color: #1f2328; }
 .layer[data-color="gray"] .num { background: #1f2328; }
+.layer[data-color="red"]    { background: rgba(207,34,46,0.03); border-color: rgba(207,34,46,0.2); }
+.layer[data-color="red"] .layer-label { color: #cf222e; }
+.layer[data-color="red"] .num { background: #cf222e; }
 
-/* ── Nodes (inside layers) ── */
+/* ── Nodes ── */
 .node {
   width: 220px; background: #fff; border: 1.5px solid #d0d7de; border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer;
@@ -71,17 +81,13 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
   content: '詳細を見る →'; display: block; font-size: 10.5px; color: #0969da;
   padding: 0 16px 10px;
 }
-
 .node-inner { padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
 .node-icon { font-size: 20px; flex-shrink: 0; }
 .node-title { font-weight: 700; font-size: 13px; color: #1f2328; }
-.node-peek { padding: 0 16px 12px; font-size: 11.5px; color: #656d76; line-height: 1.5; }
-.node-peek .hint { display: none; }
+.node-peek { padding: 0 16px 8px; font-size: 11.5px; color: #656d76; line-height: 1.5; }
 
-/* ── Layer arrows (SVG) ── */
-#arrows-svg {
-  position: absolute; top: 0; left: 0; width: 3000px; height: 1200px; pointer-events: none;
-}
+/* ── Arrows SVG ── */
+#arrows-svg { position: absolute; top: 0; left: 0; width: 4000px; height: 1500px; pointer-events: none; }
 
 /* ── Modal ── */
 #modal-overlay {
@@ -90,7 +96,6 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
   backdrop-filter: blur(3px);
 }
 #modal-overlay.open { display: flex; }
-
 #modal {
   background: #fff; border-radius: 16px; width: 720px; max-width: 90vw;
   max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
@@ -100,7 +105,6 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-
 #modal-header {
   padding: 24px 32px 16px; display: flex; align-items: center; gap: 14px;
   border-bottom: 1px solid #e8ecf0; position: sticky; top: 0; background: #fff;
@@ -114,7 +118,6 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
   display: flex; align-items: center; justify-content: center;
 }
 #modal-close:hover { background: #e8ecf0; color: #1f2328; }
-
 #modal-body {
   padding: 24px 32px 32px; font-size: 14.5px; line-height: 1.9; color: #424a53;
 }
@@ -125,6 +128,9 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 #modal-body .sub { color: #888; font-size: 13px; }
 #modal-body .section { margin-top: 20px; padding-top: 16px; border-top: 1px dashed #e8ecf0; }
 #modal-body h4 { font-size: 15px; color: #1f2328; margin-bottom: 6px; font-weight: 700; }
+#modal-body table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+#modal-body th, #modal-body td { border: 1px solid #e8ecf0; padding: 8px 12px; text-align: left; }
+#modal-body th { background: #f6f8fa; font-weight: 700; color: #1f2328; }
 
 .tag { display: inline-block; padding: 2px 10px; border-radius: 5px; font-size: 12px; margin: 2px 3px; font-weight: 600; }
 .tag-green { background: #dafbe1; color: #1a7f37; }
@@ -139,21 +145,18 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 .example-block .catch { font-weight: 800; color: #1f2328; font-size: 16px; margin: 6px 0; }
 .example-block .body-copy { color: #424a53; font-size: 13.5px; line-height: 1.8; }
 
+.callout { background: #fff8c5; border-left: 4px solid #bf8700; padding: 12px 16px; border-radius: 6px; margin: 10px 0; font-size: 13.5px; }
+.callout-red { background: #ffebe9; border-left-color: #cf222e; }
+
 /* ── Controls ── */
 #controls {
-  position: fixed; top: 16px; right: 16px; display: flex; gap: 6px; z-index: 10;
+  position: fixed; top: 12px; right: 16px; display: flex; gap: 6px; z-index: 20;
 }
 #controls button {
   background: #fff; border: 1px solid #d0d7de; color: #424a53;
   padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;
 }
 #controls button:hover { background: #f6f8fa; border-color: #0969da; color: #0969da; }
-
-#title-bar {
-  position: fixed; top: 16px; left: 16px; color: #1f2328; z-index: 10;
-  font-size: 18px; font-weight: 800;
-}
-#title-bar span { color: #656d76; font-weight: 400; font-size: 13px; margin-left: 8px; }
 
 #minimap {
   position: fixed; bottom: 16px; right: 16px; width: 220px; height: 100px;
@@ -168,7 +171,10 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 </head>
 <body>
 
-<div id="title-bar">キーワード作成くん<span>プロンプト設計図</span></div>
+<div id="tab-bar">
+  <div class="tab active" data-chart="keyword" onclick="switchChart('keyword')">キーワード作成くん</div>
+  <div class="tab" data-chart="valuation" onclick="switchChart('valuation')">バリュエーション分析くん</div>
+</div>
 <div id="controls">
   <button onclick="resetView()">Reset</button>
 </div>
@@ -176,7 +182,6 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 <div id="canvas"><div id="world"></div></div>
 <div id="minimap"><div id="minimap-viewport"></div></div>
 
-<!-- Modal -->
 <div id="modal-overlay" onclick="closeModal(event)">
   <div id="modal">
     <div id="modal-header">
@@ -195,263 +200,374 @@ if (sessionStorage.getItem('es_auth') !== HASH) {
   window.location.replace('index.html');
 }
 
-// ── Data ──
-const layers = [
-  {
-    id: 'L1', label: 'インプット', num: '1', color: 'blue',
-    x: 40, y: 40,
-    nodes: [
-      {
-        id: 'role', icon: '🎭', title: '役割',
-        peek: '投資家向け広報のプロ',
-        body: `
-          <p><strong>あなたは投資家向け広報のプロです。</strong></p>
-          <p>ユーザーの指示に基づいて、対象企業の核心的な価値を伝えるキーワードとボディコピーを作成する役割を担います。</p>
-          <p>作成にあたっては、推奨事項・NG事項を遵守し、ペルソナに響く理由も合わせて説明してください。</p>
-        `
-      },
-      {
-        id: 'persona', icon: '👥', title: 'ペルソナ（読者）',
-        peek: '機関投資家 + 個人投資家',
-        body: `
-          <p>主な読者は以下の2タイプの投資家です：</p>
-          <ul>
-            <li><strong>長期的視野を持つ機関投資家</strong> — 企業の本質的価値を見極めようとするプロフェッショナル</li>
-            <li><strong>将来性を重視する個人投資家</strong> — 成長ストーリーに共感して投資判断をする層</li>
-          </ul>
-          <p class="sub">※ どちらにも伝わる表現が求められます。専門家向けに振り切るのではなく、一般層にも配慮した表現を心がけてください。</p>
-        `
-      },
-    ]
-  },
-  {
-    id: 'L2', label: 'コア指示', num: '2', color: 'purple',
-    x: 360, y: 40,
-    nodes: [
-      {
-        id: 'exec', icon: '⚡', title: '実行内容',
-        peek: 'キーワード＋ボディコピー × 3案',
-        body: `
-          <p><strong>キーワード作成の推奨事項</strong>と<strong>NG事項</strong>を遵守しながら、対象企業の<strong>核心的な価値</strong>を伝える日本語のキーワードとボディコピーのセットを<strong>3案</strong>作成してください。</p>
-          <ul>
-            <li>そのコピーがターゲットの<strong>ペルソナに響く理由</strong>も教えてください</li>
-            <li>入力として<strong>バリュエーション分析の結果</strong>を受け取ります</li>
-          </ul>
-        `
-      },
-      {
-        id: 'policy', icon: '🎯', title: '最重要方針',
-        peek: '中長期戦略 × 企業の変化に重点',
-        body: `
-          <p>バリュエーション分析の結果を入力として受け取りますが、その中でも特に以下に<strong>重点を置いた</strong>アウトプットを作成してください：</p>
-          <ul>
-            <li><strong>中長期戦略として見据えていること</strong> — 企業が今後どこに向かおうとしているか</li>
-            <li><strong>これからの企業の変化</strong> — 現在進行形の変革、今後の成長の方向性</li>
-          </ul>
-          <p class="sub">※ 過去の実績アピールよりも「未来のストーリー」を重視してください。</p>
-        `
-      },
-    ]
-  },
-  {
-    id: 'L3', label: 'ルール', num: '3', color: 'green',
-    x: 700, y: 40,
-    nodes: [
-      {
-        id: 'recommend', icon: '✅', title: '推奨事項',
-        peek: '強み × 未来 × 独自性',
-        body: `
-          <h4>アピールポイント：対象企業の「強み」と「未来のポテンシャル」と「独自性」に焦点を当ててアピールする</h4>
-          <ul>
-            <li><span class="tag tag-green">競合優位性</span> 競合他社は実現できていない優位性を構築できている点が伝わる表現を心がける。</li>
-            <li><span class="tag tag-green">未来のポテンシャル</span> 今が天井ではなくこれから評価が上がるような取り組みをしている、またはしようとしていることが伝わる表現を心がける。</li>
-            <li><span class="tag tag-green">独自性のアピール</span> サービス独自の価値観を反映した目新しい表現を心がける。</li>
-          </ul>
-          <div class="section">
-            <h4>一般層への配慮</h4>
-            <p>専門用語や業界用語は必要最小限にとどめ、一般的な人にも伝わるよう配慮する。</p>
-          </div>
-          <div class="section">
-            <h4>時代性・トレンドへの敏感さ</h4>
-            <p>現在の社会的背景や直近1年以内のトレンドを意識し、既視感のないフレッシュな言葉遣いを意識する。</p>
-          </div>
-        `
-      },
-      {
-        id: 'ng', icon: '🚫', title: '絶対禁止事項',
-        peek: '古いワード / バズワード / 専門用語',
-        body: `
-          <h4>古いワードや概念</h4>
-          <ul>
-            <li><span class="tag tag-red">NG</span> 概念が出てきてから<strong>5年以上経過</strong>している古い言葉は使わない（例：「OMO」）</li>
-            <li><span class="tag tag-red">NG</span> 「サステナブル」のような、すでに一般化しすぎて新鮮味のないワードも避ける</li>
-          </ul>
-          <div class="section">
-            <h4>使い古された言葉やバズワード</h4>
-            <ul>
-              <li><span class="tag tag-red">NG</span> 「プラットフォーマー」など、流行りすぎて意味が薄れてしまった言葉を安易に使うのは避ける</li>
-              <li><span class="tag tag-red">NG</span> とってつけたようなバズワードや流行語を無理に盛り込むこともNG</li>
-              <li><span class="tag tag-yellow">条件付き</span> バズワードを使う場合は必ず<strong>固有的補足を後置</strong>すること</li>
-            </ul>
-          </div>
-          <div class="section">
-            <h4>ターゲットや文脈への配慮</h4>
-            <ul>
-              <li>読み手（ターゲット）が本当に理解できるか、共感できるかを重視する</li>
-              <li>業界内だけで通じる専門用語や略語、売上・KPIなどの事業数値のアピールは避ける</li>
-            </ul>
-            <p class="sub">※ ただし内部検証では数値や指標を参照して良い。コピー本文で露出を抑える目的。</p>
-          </div>
-          <div class="section">
-            <h4>時代性・トレンドへの敏感さ</h4>
-            <p>今の時代感覚からズレていないか常にチェックする。新しい価値観や社会的背景にも目を向ける。</p>
-          </div>
-        `
-      },
-    ]
-  },
-  {
-    id: 'L4', label: 'アウトプット仕様', num: '4', color: 'amber',
-    x: 1080, y: 40,
-    nodes: [
-      {
-        id: 'output', icon: '📝', title: '出力フォーマット',
-        peek: 'キャッチ20字 + ボディ120字',
-        body: `
-          <h4>キャッチコピー</h4>
-          <p><strong>20字以内</strong>の固有性ある単語または短句</p>
-          <div class="section">
-            <h4>ボディコピー（120字程度）</h4>
-            <ul>
-              <li><strong>一般層にも伝わる</strong> — 専門家でなくても読んで理解できる</li>
-              <li><strong>固有補足入り</strong> — 企業名やサービス名など具体的な要素を含める</li>
-              <li><strong>能動態</strong> — 受動態を避け、主語が行動する形で書く</li>
-              <li><strong>過度な数字無し</strong> — 売上やKPIなどの事業数値を前面に出さない</li>
-            </ul>
-          </div>
-        `
-      },
-      {
-        id: 'examples', icon: '📋', title: '文体例（3社）',
-        peek: '吉積HD / AnyMind / GENDA',
-        body: `
-          <div class="example-block">
-            <div class="company">吉積ホールディングス</div>
-            <div class="catch">「クラウドオーケストレーター」</div>
-            <div class="body-copy">私たちは、Google Cloudを基盤とし、単なる導入支援を超えた『クラウドオーケストレーション』をグローバルに展開しています。技術、プロセス、組織を統合し、お客様のビジネス成長を支える戦略パートナーとして、未来の成功を共に描きます。</div>
-          </div>
-          <div class="example-block">
-            <div class="company">AnyMind</div>
-            <div class="catch">「Make Every Business Borderless — 次世代のビジネスインフラへ」</div>
-            <div class="body-copy">昨今のインターネット・テクノロジーの進化によって、誰もが世界を相手にビジネスに挑戦できる時代が到来しました。しかし、世界には今でも、情報の非対称性や不透明な商習慣、地理的な制限など、ビジネスにおけるさまざまなボーダー（障害）が溢れています。AnyMind Groupは、情熱とアイデアを持つすべての人や企業に、これらの課題を解決するための統合型プラットフォームを提供することで、誰もがビジネスをより簡単に、そしてグローバルに展開できる世界を実現していきます。</div>
-          </div>
-          <div class="example-block">
-            <div class="company">GENDA</div>
-            <div class="catch">「世界をつなぐエンタメ経済圏」</div>
-            <div class="body-copy">GENDAが目指すのは、エンターテインメントを軸にした"世界をつなぐプラットフォーム企業"への進化です。アミューズメント施設、プライズ、IPコンテンツを通じて、アジアから北米へと広がるリアルな体験接点を構築。今や私たちは、単なる施設運営を超えて、グローバルな「体験経済圏」の中核を担う存在へと変貌を遂げています。そしてその中心には、日本発のアニメやキャラクターといったIPがあり、世界中のファンの"推し活"をリアルに支える次世代のプラットフォームとして、GENDAが新たなスタンダードをつくっていきます。</div>
-          </div>
-        `
-      },
-    ]
-  },
-  {
-    id: 'L5', label: '最終チェック', num: '5', color: 'gray',
-    x: 1460, y: 40,
-    nodes: [
-      {
-        id: 'final', icon: '🔍', title: '最終確認事項',
-        peek: '重視すべきことを最初に宣言',
-        body: `
-          <p>冒頭で最重要方針として伝えていますが、<strong>キーワード・ボディコピーを作成する上であなたが重視すべきこと</strong>を<strong>最初に宣言した上で</strong>キーワードを作成してください。</p>
-          <div class="section">
-            <h4>つまり出力の流れは：</h4>
-            <ol style="padding-left:20px;">
-              <li>「私が重視するポイントは…」と明示</li>
-              <li>キーワード＋ボディコピーを3案作成</li>
-              <li>各案がペルソナに響く理由を説明</li>
-            </ol>
-          </div>
-        `
-      },
-    ]
-  },
-];
+// ══════════════════════════════════════
+//  CHART DATA
+// ══════════════════════════════════════
 
-// ── Render ──
+const charts = {
+  keyword: {
+    title: 'キーワード作成くん',
+    layers: [
+      {
+        id: 'L1', label: 'インプット', num: '1', color: 'blue', x: 40, y: 40,
+        nodes: [
+          { id: 'k-role', icon: '🎭', title: '役割', peek: '投資家向け広報のプロ',
+            body: `<p><strong>あなたは投資家向け広報のプロです。</strong></p>
+              <p>ユーザーの指示に基づいて、対象企業の核心的な価値を伝えるキーワードとボディコピーを作成する役割を担います。</p>
+              <p>作成にあたっては、推奨事項・NG事項を遵守し、ペルソナに響く理由も合わせて説明してください。</p>` },
+          { id: 'k-persona', icon: '👥', title: 'ペルソナ（読者）', peek: '機関投資家 + 個人投資家',
+            body: `<p>主な読者は以下の2タイプの投資家です：</p>
+              <ul>
+                <li><strong>長期的視野を持つ機関投資家</strong> — 企業の本質的価値を見極めようとするプロフェッショナル</li>
+                <li><strong>将来性を重視する個人投資家</strong> — 成長ストーリーに共感して投資判断をする層</li>
+              </ul>
+              <p class="sub">※ どちらにも伝わる表現が求められます。専門家向けに振り切るのではなく、一般層にも配慮した表現を心がけてください。</p>` },
+        ]
+      },
+      {
+        id: 'L2', label: 'コア指示', num: '2', color: 'purple', x: 360, y: 40,
+        nodes: [
+          { id: 'k-exec', icon: '⚡', title: '実行内容', peek: 'キーワード＋ボディコピー × 3案',
+            body: `<p><strong>キーワード作成の推奨事項</strong>と<strong>NG事項</strong>を遵守しながら、対象企業の<strong>核心的な価値</strong>を伝える日本語のキーワードとボディコピーのセットを<strong>3案</strong>作成してください。</p>
+              <ul>
+                <li>そのコピーがターゲットの<strong>ペルソナに響く理由</strong>も教えてください</li>
+                <li>入力として<strong>バリュエーション分析の結果</strong>を受け取ります</li>
+              </ul>` },
+          { id: 'k-policy', icon: '🎯', title: '最重要方針', peek: '中長期戦略 × 企業の変化に重点',
+            body: `<p>バリュエーション分析の結果を入力として受け取りますが、その中でも特に以下に<strong>重点を置いた</strong>アウトプットを作成してください：</p>
+              <ul>
+                <li><strong>中長期戦略として見据えていること</strong> — 企業が今後どこに向かおうとしているか</li>
+                <li><strong>これからの企業の変化</strong> — 現在進行形の変革、今後の成長の方向性</li>
+              </ul>
+              <p class="sub">※ 過去の実績アピールよりも「未来のストーリー」を重視してください。</p>` },
+        ]
+      },
+      {
+        id: 'L3', label: 'ルール', num: '3', color: 'green', x: 700, y: 40,
+        nodes: [
+          { id: 'k-recommend', icon: '✅', title: '推奨事項', peek: '強み × 未来 × 独自性',
+            body: `<h4>アピールポイント：対象企業の「強み」と「未来のポテンシャル」と「独自性」に焦点を当ててアピールする</h4>
+              <ul>
+                <li><span class="tag tag-green">競合優位性</span> 競合他社は実現できていない優位性を構築できている点が伝わる表現を心がける。</li>
+                <li><span class="tag tag-green">未来のポテンシャル</span> 今が天井ではなくこれから評価が上がるような取り組みをしている、またはしようとしていることが伝わる表現を心がける。</li>
+                <li><span class="tag tag-green">独自性のアピール</span> サービス独自の価値観を反映した目新しい表現を心がける。</li>
+              </ul>
+              <div class="section"><h4>一般層への配慮</h4><p>専門用語や業界用語は必要最小限にとどめ、一般的な人にも伝わるよう配慮する。</p></div>
+              <div class="section"><h4>時代性・トレンドへの敏感さ</h4><p>現在の社会的背景や直近1年以内のトレンドを意識し、既視感のないフレッシュな言葉遣いを意識する。</p></div>` },
+          { id: 'k-ng', icon: '🚫', title: '絶対禁止事項', peek: '古いワード / バズワード / 専門用語',
+            body: `<h4>古いワードや概念</h4>
+              <ul>
+                <li><span class="tag tag-red">NG</span> 概念が出てきてから<strong>5年以上経過</strong>している古い言葉は使わない（例：「OMO」）</li>
+                <li><span class="tag tag-red">NG</span> 「サステナブル」のような、すでに一般化しすぎて新鮮味のないワードも避ける</li>
+              </ul>
+              <div class="section"><h4>使い古された言葉やバズワード</h4>
+                <ul>
+                  <li><span class="tag tag-red">NG</span> 「プラットフォーマー」など、流行りすぎて意味が薄れてしまった言葉を安易に使うのは避ける</li>
+                  <li><span class="tag tag-red">NG</span> とってつけたようなバズワードや流行語を無理に盛り込むこともNG</li>
+                  <li><span class="tag tag-yellow">条件付き</span> バズワードを使う場合は必ず<strong>固有的補足を後置</strong>すること</li>
+                </ul>
+              </div>
+              <div class="section"><h4>ターゲットや文脈への配慮</h4>
+                <ul>
+                  <li>読み手（ターゲット）が本当に理解できるか、共感できるかを重視する</li>
+                  <li>業界内だけで通じる専門用語や略語、売上・KPIなどの事業数値のアピールは避ける</li>
+                </ul>
+                <p class="sub">※ ただし内部検証では数値や指標を参照して良い。コピー本文で露出を抑える目的。</p>
+              </div>
+              <div class="section"><h4>時代性・トレンドへの敏感さ</h4><p>今の時代感覚からズレていないか常にチェックする。新しい価値観や社会的背景にも目を向ける。</p></div>` },
+        ]
+      },
+      {
+        id: 'L4', label: 'アウトプット仕様', num: '4', color: 'amber', x: 1080, y: 40,
+        nodes: [
+          { id: 'k-output', icon: '📝', title: '出力フォーマット', peek: 'キャッチ20字 + ボディ120字',
+            body: `<h4>キャッチコピー</h4><p><strong>20字以内</strong>の固有性ある単語または短句</p>
+              <div class="section"><h4>ボディコピー（120字程度）</h4>
+                <ul>
+                  <li><strong>一般層にも伝わる</strong> — 専門家でなくても読んで理解できる</li>
+                  <li><strong>固有補足入り</strong> — 企業名やサービス名など具体的な要素を含める</li>
+                  <li><strong>能動態</strong> — 受動態を避け、主語が行動する形で書く</li>
+                  <li><strong>過度な数字無し</strong> — 売上やKPIなどの事業数値を前面に出さない</li>
+                </ul>
+              </div>` },
+          { id: 'k-examples', icon: '📋', title: '文体例（3社）', peek: '吉積HD / AnyMind / GENDA',
+            body: `<div class="example-block"><div class="company">吉積ホールディングス</div><div class="catch">「クラウドオーケストレーター」</div><div class="body-copy">私たちは、Google Cloudを基盤とし、単なる導入支援を超えた『クラウドオーケストレーション』をグローバルに展開しています。技術、プロセス、組織を統合し、お客様のビジネス成長を支える戦略パートナーとして、未来の成功を共に描きます。</div></div>
+              <div class="example-block"><div class="company">AnyMind</div><div class="catch">「Make Every Business Borderless — 次世代のビジネスインフラへ」</div><div class="body-copy">昨今のインターネット・テクノロジーの進化によって、誰もが世界を相手にビジネスに挑戦できる時代が到来しました。しかし、世界には今でも、情報の非対称性や不透明な商習慣、地理的な制限など、ビジネスにおけるさまざまなボーダー（障害）が溢れています。AnyMind Groupは、情熱とアイデアを持つすべての人や企業に、これらの課題を解決するための統合型プラットフォームを提供することで、誰もがビジネスをより簡単に、そしてグローバルに展開できる世界を実現していきます。</div></div>
+              <div class="example-block"><div class="company">GENDA</div><div class="catch">「世界をつなぐエンタメ経済圏」</div><div class="body-copy">GENDAが目指すのは、エンターテインメントを軸にした"世界をつなぐプラットフォーム企業"への進化です。アミューズメント施設、プライズ、IPコンテンツを通じて、アジアから北米へと広がるリアルな体験接点を構築。今や私たちは、単なる施設運営を超えて、グローバルな「体験経済圏」の中核を担う存在へと変貌を遂げています。そしてその中心には、日本発のアニメやキャラクターといったIPがあり、世界中のファンの"推し活"をリアルに支える次世代のプラットフォームとして、GENDAが新たなスタンダードをつくっていきます。</div></div>` },
+        ]
+      },
+      {
+        id: 'L5', label: '最終チェック', num: '5', color: 'gray', x: 1460, y: 40,
+        nodes: [
+          { id: 'k-final', icon: '🔍', title: '最終確認事項', peek: '重視すべきことを最初に宣言',
+            body: `<p>冒頭で最重要方針として伝えていますが、<strong>キーワード・ボディコピーを作成する上であなたが重視すべきこと</strong>を<strong>最初に宣言した上で</strong>キーワードを作成してください。</p>
+              <div class="section"><h4>つまり出力の流れは：</h4>
+                <ol style="padding-left:20px;">
+                  <li>「私が重視するポイントは…」と明示</li>
+                  <li>キーワード＋ボディコピーを3案作成</li>
+                  <li>各案がペルソナに響く理由を説明</li>
+                </ol>
+              </div>` },
+        ]
+      },
+    ]
+  },
+
+  valuation: {
+    title: 'バリュエーション分析くん',
+    layers: [
+      {
+        id: 'V1', label: '前提', num: '1', color: 'blue', x: 40, y: 40,
+        nodes: [
+          { id: 'v-role', icon: '🏦', title: '役割', peek: '株式価値評価の機関投資家',
+            body: `<p><strong>あなたは日本の上場企業・PreIPO企業の株式価値評価を専門とする機関投資家です。</strong></p>
+              <p>企業情報をもとに、<strong>投資家が「この会社をどう評価するか」を先回りして分析</strong>し、バリュエーション向上の打ち手を提案します。</p>` },
+          { id: 'v-principle', icon: '⚠️', title: '基本原則：根拠の明示', peek: 'すべての結論に根拠必須',
+            body: `<div class="callout"><strong>すべての分析・結論には必ず「なぜそう考えたか」の根拠を明示すること</strong></div>
+              <p>根拠が示せない主張は価値がありません。思考プロセスの結果であっても、以下を必ず含めてください：</p>
+              <ul>
+                <li>どのデータ・事実に基づいているか</li>
+                <li>どのような論理でその結論に至ったか</li>
+                <li>参照した比較対象や事例は何か</li>
+              </ul>` },
+          { id: 'v-topsight', icon: '🧠', title: '「第一想起」概念', peek: '投資家の頭に最初に浮かぶ比較対象',
+            body: `<p><strong>「第一想起」= 投資家がこの会社を見たときに、最初に頭に浮かぶ比較対象</strong></p>
+              <p>投資家は新しい銘柄を評価するとき、無意識に「これは○○みたいな会社だな」と既知の銘柄に当てはめます。この「○○」が第一想起です。</p>
+              <div class="section"><h4>例</h4>
+                <ul>
+                  <li>「BtoB SaaSで月額課金」→ 投資家の頭には「ラクス」「freee」が浮かぶ</li>
+                  <li>「建設業界向けDX」→「スパイダープラス」「ANDPAD」が浮かぶ</li>
+                  <li>「マーケットプレイス型」→「メルカリ」「ココナラ」が浮かぶ</li>
+                </ul>
+              </div>
+              <div class="section"><h4>なぜ重要か</h4>
+                <p>第一想起企業のPERがそのまま自社のバリュエーションの「天井」になりがち。逆に言えば、<strong>より高いPERの企業を第一想起させることができれば、自社のバリュエーションも引き上がる</strong>。</p>
+              </div>` },
+        ]
+      },
+      {
+        id: 'V2', label: '入力', num: '2', color: 'purple', x: 470, y: 40,
+        nodes: [
+          { id: 'v-mode', icon: '🔀', title: '分析モード選択', peek: '上場 / PreIPO黒字・赤字 / 調達',
+            body: `<table>
+                <tr><th>モード</th><th>対象企業</th><th>評価指標</th><th>特記事項</th></tr>
+                <tr><td><strong>①上場企業</strong></td><td>既上場銘柄</td><td>PER中心</td><td>実績ベースで分析可能</td></tr>
+                <tr><td><strong>②PreIPO（黒字）</strong></td><td>上場準備中・黒字</td><td>PER中心</td><td>将来PLの蓋然性が重要</td></tr>
+                <tr><td><strong>③PreIPO（赤字）</strong></td><td>上場準備中・赤字</td><td>PER（黒字化後想定）</td><td>黒字化パスの説明が必須</td></tr>
+                <tr><td><strong>④資金調達ラウンド</strong></td><td>VC調達中</td><td>ARR倍率・PER想定</td><td>Compsよりもストーリー重視</td></tr>
+              </table>` },
+          { id: 'v-input', icon: '📥', title: 'インプット情報', peek: '基本情報 + 参照ドキュメント',
+            body: `<h4>基本情報</h4>
+              <ul>
+                <li><strong>企業名</strong>: {企業名を入力}</li>
+                <li><strong>業界</strong>: {業界を入力}</li>
+                <li><strong>直近売上高</strong>: {金額}</li>
+                <li><strong>直近営業利益</strong>: {金額、赤字の場合はマイナス表記}</li>
+                <li><strong>ビジネスモデルの特徴</strong>: {ストック型/フロー型/マーケットプレイス型 など}</li>
+              </ul>
+              <div class="section"><h4>参照ドキュメント</h4>
+                <ul>
+                  <li>{Notionページリンク}</li>
+                  <li><strong>除外するドキュメント種別</strong>: {例：提案時議事録、初期ヒアリングメモ など}</li>
+                </ul>
+              </div>` },
+        ]
+      },
+      {
+        id: 'V3', label: '分析ステップ', num: '3', color: 'green', x: 900, y: 40,
+        nodes: [
+          { id: 'v-step1', icon: '🔎', title: 'Step 1: 第一想起を特定', peek: '認知予測 → Comps 5社 → 代表3社',
+            body: `<h4>1-1. 投資家の認知予測</h4>
+              <p>この企業を初見の投資家が見たとき、どのカテゴリに分類するか：</p>
+              <ul>
+                <li>業界カテゴリ（例：「建設DX」「HR Tech」「物流」）</li>
+                <li>ビジネスモデルカテゴリ（例：「SaaS」「マッチングPF」「受託」）</li>
+                <li>成長ステージ（例：「赤字成長」「黒字安定」）</li>
+              </ul>
+              <div class="section"><h4>1-2. 第一想起企業リスト（5社以上）</h4>
+                <div class="callout"><strong>選定ルール（この優先順位で選定すること）</strong><br>
+                  1. まず<strong>国内上場企業</strong>から選定<br>
+                  2. 国内上場企業で適切なCompsがない場合 → <strong>海外上場企業</strong>を参照<br>
+                  3. 上場企業で該当がない場合のみ → 非上場企業を補足的に追加
+                </div>
+                <table><tr><th>企業名</th><th>ティッカー</th><th>上場市場</th><th>選定理由（1行）</th></tr>
+                  <tr><td colspan="4" style="color:#888;text-align:center">5社以上を記載</td></tr></table>
+              </div>
+              <div class="section"><h4>1-3. 代表的Comps（3社）の選定</h4>
+                <p>上記から最も類似性が高い3社を選定し、<strong>なぜその3社を選んだか</strong>を以下の観点で明記：</p>
+                <ul>
+                  <li>事業内容の類似点と<strong>選定根拠</strong></li>
+                  <li>収益構造の類似点と<strong>選定根拠</strong></li>
+                  <li>成長フェーズの類似点と<strong>選定根拠</strong></li>
+                </ul>
+              </div>` },
+          { id: 'v-step2', icon: '📊', title: 'Step 2: Comps比較', peek: 'PER / EV/EBITDA / 時価総額',
+            body: `<p>Step 1で選定した3社について、以下の指標を調査・記載する。</p>
+              <table><tr><th>企業名</th><th>PER</th><th>EV/EBITDA</th><th>時価総額</th><th>特記事項</th></tr>
+                <tr><td colspan="5" style="color:#888;text-align:center">3社分を記載</td></tr></table>
+              <div class="section"><h4>比較分析（必ず根拠を明示）</h4>
+                <ul>
+                  <li>3社の中でPERが<strong>最も高い</strong>企業 → <strong>理由</strong>: なぜ高いのか、具体的な要因</li>
+                  <li>3社の中でPERが<strong>最も低い</strong>企業 → <strong>理由</strong>: なぜ低いのか、具体的な要因</li>
+                  <li>対象企業の<strong>想定PER水準</strong> → <strong>算出根拠</strong>: どのように算出したか</li>
+                </ul>
+              </div>
+              <div class="callout-red callout"><strong>重要</strong>: 「高成長企業は○〜○倍」等の記載をする場合、<strong>必ず具体的な企業名を併記</strong>すること。<br>
+                ❌「高成長EdTech企業は2〜5倍の評価も存在」<br>
+                ✅「高成長EdTech企業は2〜5倍の評価（例：○○社 3.2倍、△△社 4.8倍）」</div>` },
+        ]
+      },
+      {
+        id: 'V4', label: '戦略導出', num: '4', color: 'amber', x: 1380, y: 40,
+        nodes: [
+          { id: 'v-step3', icon: '🚀', title: 'Step 3: 向上戦略', peek: '評価手法選択 → 短期 → 中長期施策',
+            body: `<div class="callout"><strong>重要</strong>: この戦略は必ずStep 2の比較分析から論理的に導出すること。<br>
+                「Comps Aは○○だからPERが高い → 自社も○○を訴求すればPERが上がる」という因果関係を明示する。</div>
+              <div class="section"><h4>3-1. 評価手法の選択</h4>
+                <ul><li>推奨する評価手法: PER / EV/EBITDA</li><li>選択理由を記載</li></ul>
+              </div>
+              <div class="section"><h4>3-2. 短期施策（IR・開示の改善）</h4>
+                <div class="callout"><strong>投資家の具体的な懸念に対し、明確なストーリーで回答する形式で記載すること</strong><br><br>
+                  例：<br>
+                  <strong>懸念</strong>「高単価商材なのに役務提供期間が3ヶ月だと獲得効率の逓減で会員の積み上げに限界が来ないか？」<br>
+                  <strong>ストーリー</strong>「人生を通して付き合うプラットフォームに成長させる」<br>
+                  <strong>根拠</strong>「○○社は同様の転換でPERが△倍→□倍に上昇」
+                </div>
+                <table><tr><th>投資家の懸念</th><th>対応ストーリー</th><th>根拠（Comps参考）</th><th>具体的な開示方法</th></tr>
+                  <tr><td colspan="4" style="color:#888;text-align:center">懸念ごとに記載</td></tr></table>
+              </div>
+              <div class="section"><h4>3-3. 中長期施策（事業・ポジショニングの変化）</h4>
+                <p>現在のComps群より高いPERを持つ「別のComps群」に第一想起を移動させるための戦略：</p>
+                <table><tr><th>項目</th><th>内容</th><th>根拠</th></tr>
+                  <tr><td>移動先のComps群</td><td></td><td>なぜこのComps群を選んだか</td></tr>
+                  <tr><td>そのComps群のPER水準</td><td></td><td>具体的な企業名と数値</td></tr>
+                  <tr><td>移動に必要な事業変化</td><td></td><td>実現可能性の根拠</td></tr></table>
+              </div>` },
+          { id: 'v-step4', icon: '⚖️', title: 'Step 4: リスクと対応策', peek: 'ディスカウント要因 + プレミアム要因',
+            body: `<h4>4-1. ディスカウント要因の洗い出し</h4>
+              <p>投資家が懸念しそうなポイント（3〜5個）：</p>
+              <table><tr><th>懸念事項</th><th>想定される投資家の質問</th><th>推奨回答</th><th>回答の根拠</th></tr>
+                <tr><td colspan="4" style="color:#888;text-align:center">3〜5個を記載</td></tr></table>
+              <div class="section"><h4>4-2. プレミアム要因の発掘</h4>
+                <p>Compsと比較して明確に優れている点：</p>
+                <table><tr><th>優位性</th><th>定量的根拠</th><th>Compsとの比較</th><th>投資家への伝え方</th></tr>
+                  <tr><td colspan="4" style="color:#888;text-align:center">優位性ごとに記載</td></tr></table>
+              </div>` },
+        ]
+      },
+      {
+        id: 'V5', label: 'ガードレール', num: '5', color: 'red', x: 1830, y: 40,
+        nodes: [
+          { id: 'v-method', icon: '📐', title: '評価手法ガイド', peek: 'PER優先 / PSR使用禁止',
+            body: `<table>
+                <tr><th>条件</th><th>推奨手法</th><th>理由</th></tr>
+                <tr><td><strong>IPOプロジェクト（原則）</strong></td><td>PER</td><td>投資家が最も使い慣れている。黒字化後の利益を基準に評価</td></tr>
+                <tr><td>黒字企業（大半のケース）</td><td>PER</td><td>最も投資家が使い慣れている</td></tr>
+                <tr><td>赤字企業</td><td>PER（黒字化後想定）</td><td>黒字化計画をベースに将来PERを算出</td></tr>
+                <tr><td>設備投資が大きい業界</td><td>EV/EBITDA</td><td>減価償却の影響を除外</td></tr>
+                <tr><td>金融・不動産</td><td>PBR</td><td>資産価値が重要</td></tr>
+              </table>
+              <div class="callout-red callout"><strong>PSRは原則使用禁止</strong><br>
+                投資家との会話でPERベースの議論ができない状態は避ける。赤字企業であっても黒字化後想定PERで評価すること。</div>` },
+          { id: 'v-ng', icon: '🚫', title: '禁止事項', peek: '9つの禁止ルール',
+            body: `<ul>
+                <li><span class="tag tag-red">禁止</span> Compsを列挙するだけでバリュエーション指標を比較しない</li>
+                <li><span class="tag tag-red">禁止</span> Step 2の分析とStep 3の戦略に論理的つながりがない</li>
+                <li><span class="tag tag-red">禁止</span> 「成長性が高い」「市場が拡大」など根拠のない表現</li>
+                <li><span class="tag tag-red">禁止</span> 対象企業のフェーズ（上場/PreIPO）を無視した分析</li>
+                <li><span class="tag tag-red">禁止</span> 根拠を示さずに結論だけを述べる</li>
+                <li><span class="tag tag-red">禁止</span> 評価レンジを示す際に具体的な企業名を併記しない</li>
+                <li><span class="tag tag-red">禁止</span> 非上場企業を上場企業より優先してComps選定する</li>
+                <li><span class="tag tag-red">禁止</span> PSRを評価手法として使用する</li>
+                <li><span class="tag tag-red">禁止</span> 公開情報の焼き直しに留まり、独自の仮説・切り口を提示しない</li>
+              </ul>` },
+          { id: 'v-format', icon: '📄', title: '出力形式', peek: 'Markdown / 日本語 / 表活用',
+            body: `<ul>
+                <li><strong>Markdown形式</strong>で出力</li>
+                <li><strong>日本語</strong>で記述</li>
+                <li><strong>表を積極的に使用</strong>し、視認性を高める</li>
+                <li><strong>すべての分析・結論に根拠を明示</strong></li>
+              </ul>` },
+        ]
+      },
+    ]
+  }
+};
+
+// ══════════════════════════════════════
+//  ENGINE
+// ══════════════════════════════════════
+
 const world = document.getElementById('world');
 const canvasEl = document.getElementById('canvas');
-let scale = 0.82, tx = 30, ty = 30;
+let scale = 0.82, tx = 30, ty = 60;
 let panDragging = false, panLastX, panLastY;
 let layerDrag = null;
+let currentChart = 'keyword';
+let layerEls = {};
+let allNodes = [];
 
-// Flatten nodes for modal lookup
-const allNodes = layers.flatMap(l => l.nodes);
-
-// Create SVG for arrows
 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svg.id = 'arrows-svg';
-world.appendChild(svg);
 
-// Create layer elements
-const layerEls = {};
-layers.forEach(layer => {
-  const el = document.createElement('div');
-  el.className = 'layer';
-  el.dataset.color = layer.color;
-  el.dataset.lid = layer.id;
-  el.style.left = layer.x + 'px';
-  el.style.top = layer.y + 'px';
-  el.style.cursor = 'grab';
+function renderChart(key) {
+  currentChart = key;
+  const chart = charts[key];
+  allNodes = chart.layers.flatMap(l => l.nodes);
+  layerEls = {};
 
-  let cardsHtml = '';
-  layer.nodes.forEach(n => {
-    cardsHtml += `
-      <div class="node" data-nid="${n.id}">
-        <div class="node-inner">
-          <span class="node-icon">${n.icon}</span>
-          <span class="node-title">${n.title}</span>
-        </div>
-        <div class="node-peek">
-          ${n.peek}
-          <div class="hint">クリックで詳細 →</div>
-        </div>
-      </div>
-    `;
+  // Clear world
+  world.innerHTML = '';
+  world.appendChild(svg);
+
+  // Create layers
+  chart.layers.forEach(layer => {
+    const el = document.createElement('div');
+    el.className = 'layer';
+    el.dataset.color = layer.color;
+    el.dataset.lid = layer.id;
+    el.style.left = layer.x + 'px';
+    el.style.top = layer.y + 'px';
+    el.style.cursor = 'grab';
+
+    let cardsHtml = '';
+    layer.nodes.forEach(n => {
+      cardsHtml += `<div class="node" data-nid="${n.id}">
+        <div class="node-inner"><span class="node-icon">${n.icon}</span><span class="node-title">${n.title}</span></div>
+        <div class="node-peek">${n.peek}</div>
+      </div>`;
+    });
+
+    el.innerHTML = `<div class="layer-label"><span class="num">${layer.num}</span>${layer.label}</div>
+      <div class="layer-cards">${cardsHtml}</div>`;
+    world.appendChild(el);
+    layerEls[layer.id] = el;
   });
 
-  el.innerHTML = `
-    <div class="layer-label">
-      <span class="num">${layer.num}</span>
-      ${layer.label}
-    </div>
-    <div class="layer-cards">${cardsHtml}</div>
-  `;
-  world.appendChild(el);
-  layerEls[layer.id] = el;
-});
+  // Update tabs
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.chart === key);
+  });
 
-// ── Draw layer-to-layer arrows ──
+  requestAnimationFrame(() => { drawArrows(); applyTransform(); });
+}
+
 function drawArrows() {
-  svg.innerHTML = `<defs>
-    <marker id="ah" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
-      <polygon points="0 0, 12 4, 0 8" fill="#b0b8c1"/>
-    </marker>
-  </defs>`;
+  const chart = charts[currentChart];
+  svg.innerHTML = `<defs><marker id="ah" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#b0b8c1"/></marker></defs>`;
 
-  for (let i = 0; i < layers.length - 1; i++) {
-    const aEl = layerEls[layers[i].id];
-    const bEl = layerEls[layers[i + 1].id];
+  for (let i = 0; i < chart.layers.length - 1; i++) {
+    const aEl = layerEls[chart.layers[i].id];
+    const bEl = layerEls[chart.layers[i + 1].id];
     const aL = parseFloat(aEl.style.left), aT = parseFloat(aEl.style.top);
     const bL = parseFloat(bEl.style.left), bT = parseFloat(bEl.style.top);
     const aR = aL + aEl.offsetWidth;
     const aCy = aT + aEl.offsetHeight / 2;
     const bCy = bT + bEl.offsetHeight / 2;
-    const gap = bL - aR;
-    const cx1 = aR + gap * 0.4;
-    const cx2 = bL - gap * 0.4;
-
+    const gap = Math.max(bL - aR, 20);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M ${aR} ${aCy} C ${cx1} ${aCy}, ${cx2} ${bCy}, ${bL} ${bCy}`);
+    path.setAttribute('d', `M ${aR} ${aCy} C ${aR + gap * 0.4} ${aCy}, ${bL - gap * 0.4} ${bCy}, ${bL} ${bCy}`);
     path.setAttribute('stroke', '#b0b8c1');
     path.setAttribute('stroke-width', '2');
     path.setAttribute('stroke-dasharray', '6 4');
@@ -459,6 +575,11 @@ function drawArrows() {
     path.setAttribute('marker-end', 'url(#ah)');
     svg.appendChild(path);
   }
+}
+
+function switchChart(key) {
+  scale = 0.82; tx = 30; ty = 60;
+  renderChart(key);
 }
 
 // ── Modal ──
@@ -479,27 +600,18 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 // ── Node click → modal ──
 world.addEventListener('click', e => {
   const nodeEl = e.target.closest('.node');
-  if (nodeEl && !layerDrag?.moved) {
-    openModal(nodeEl.dataset.nid);
-  }
+  if (nodeEl && !layerDrag?.moved) openModal(nodeEl.dataset.nid);
 });
 
 // ── Layer drag ──
 world.addEventListener('mousedown', e => {
   const lEl = e.target.closest('.layer');
   if (!lEl) return;
-  // Don't start drag if clicking a node
-  if (e.target.closest('.node')) {
-    // Still need to track for distinguishing click vs drag
-  }
   e.stopPropagation();
-  const lid = lEl.dataset.lid;
   layerDrag = {
-    lid,
-    startX: e.clientX,
-    startY: e.clientY,
-    origLeft: parseFloat(lEl.style.left),
-    origTop: parseFloat(lEl.style.top),
+    lid: lEl.dataset.lid,
+    startX: e.clientX, startY: e.clientY,
+    origLeft: parseFloat(lEl.style.left), origTop: parseFloat(lEl.style.top),
     moved: false,
   };
   lEl.style.cursor = 'grabbing';
@@ -517,10 +629,8 @@ window.addEventListener('mousemove', e => {
     return;
   }
   if (!panDragging) return;
-  tx += e.clientX - panLastX;
-  ty += e.clientY - panLastY;
-  panLastX = e.clientX;
-  panLastY = e.clientY;
+  tx += e.clientX - panLastX; ty += e.clientY - panLastY;
+  panLastX = e.clientX; panLastY = e.clientY;
   applyTransform();
 });
 
@@ -528,7 +638,8 @@ window.addEventListener('mouseup', () => {
   if (layerDrag) {
     const el = layerEls[layerDrag.lid];
     el.style.cursor = 'grab';
-    const layer = layers.find(l => l.id === layerDrag.lid);
+    const chart = charts[currentChart];
+    const layer = chart.layers.find(l => l.id === layerDrag.lid);
     if (layer) { layer.x = parseFloat(el.style.left); layer.y = parseFloat(el.style.top); }
     setTimeout(() => { layerDrag = null; }, 10);
     return;
@@ -536,20 +647,15 @@ window.addEventListener('mouseup', () => {
   panDragging = false;
 });
 
-// ── Canvas pan ──
 canvasEl.addEventListener('mousedown', e => {
   if (e.target.closest('.layer')) return;
-  panDragging = true;
-  panLastX = e.clientX;
-  panLastY = e.clientY;
+  panDragging = true; panLastX = e.clientX; panLastY = e.clientY;
 });
 
-// ── Zoom ──
 canvasEl.addEventListener('wheel', e => {
   e.preventDefault();
   const rect = canvasEl.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
   const oldScale = scale;
   scale *= e.deltaY > 0 ? 0.92 : 1.08;
   scale = Math.max(0.15, Math.min(3, scale));
@@ -562,16 +668,13 @@ function applyTransform() {
   world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   updateMinimap();
 }
-
-function resetView() {
-  scale = 0.82; tx = 30; ty = 30; applyTransform();
-}
+function resetView() { scale = 0.82; tx = 30; ty = 60; applyTransform(); }
 
 function updateMinimap() {
   const mm = document.getElementById('minimap');
   const vp = document.getElementById('minimap-viewport');
   const mmW = mm.offsetWidth, mmH = mm.offsetHeight;
-  const worldW = 2000, worldH = 600;
+  const worldW = 2400, worldH = 700;
   const s = Math.min(mmW / worldW, mmH / worldH);
   vp.style.width = (canvasEl.offsetWidth / scale) * s + 'px';
   vp.style.height = (canvasEl.offsetHeight / scale) * s + 'px';
@@ -579,7 +682,8 @@ function updateMinimap() {
   vp.style.top = (-ty / scale) * s + 'px';
 }
 
-requestAnimationFrame(() => { drawArrows(); applyTransform(); });
+// Init
+renderChart('keyword');
 window.addEventListener('resize', () => { drawArrows(); updateMinimap(); });
 </script>
 </body>
