@@ -87,7 +87,7 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 .node-peek { padding: 0 16px 8px; font-size: 11.5px; color: #656d76; line-height: 1.5; }
 
 /* ── Arrows SVG ── */
-#arrows-svg { position: absolute; top: 0; left: 0; width: 4000px; height: 2500px; pointer-events: none; }
+#arrows-svg { position: absolute; top: 0; left: 0; width: 6000px; height: 5000px; pointer-events: none; }
 
 #mode-legend {
   position: fixed; bottom: 16px; left: 16px; z-index: 20;
@@ -179,6 +179,60 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 #minimap-viewport {
   position: absolute; border: 2px solid #0969da; background: rgba(9,105,218,0.06);
   pointer-events: none; border-radius: 2px;
+}
+
+/* ── Swimlane styles ── */
+.lane-header {
+  width: 200px;
+  min-height: 80px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: box-shadow 0.15s, transform 0.15s;
+  border: 2px solid;
+  position: absolute;
+}
+.lane-header:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+}
+.lane-header::after {
+  content: '詳細を見る →';
+  display: block;
+  font-size: 10.5px;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+.lane-header .lh-icon { font-size: 20px; }
+.lane-header .lh-title { font-weight: 700; font-size: 13px; display: block; margin-top: 4px; }
+.lane-header .lh-sub { font-size: 11px; opacity: 0.7; display: block; margin-top: 2px; }
+
+.lane-note {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.lane-empty {
+  display: flex;
+  align-items: center;
+  padding: 20px 30px;
+  color: #888;
+  font-size: 14px;
+  font-style: italic;
+  border: 2px dashed #d0d7de;
+  border-radius: 12px;
+  background: #f8f9fa;
+  min-height: 80px;
+  position: absolute;
 }
 </style>
 </head>
@@ -510,62 +564,14 @@ const charts = {
   },
 
   // ──────────────────────────────────
-  //  HasegawaOS（6レイヤー）
+  //  HasegawaOS（Swimlane Layout）
   // ──────────────────────────────────
   hasegawa: {
     title: 'HasegawaOS',
-    layers: [
-      {
-        id: 'H1', label: 'モード選択', num: '0', color: 'purple', x: 40, y: 280,
-        nodes: [
-          { id: 'h-mode0', icon: '🌐', title: 'Mode 0: Default', peek: 'ChatGPT本来の自由推論と創造性を最大化',
-            body: `<h4>Mode 0: Default</h4>
-<ul>
-  <li>ChatGPT本来の自由推論と創造性を最大化</li>
-  <li>長谷川OSの適用は行わない（必要な時だけ最小限）</li>
-</ul>` },
-          { id: 'h-mode1', icon: '🧩', title: 'Mode 1: Structure Mode', peek: '3つのみ適用で思考の迷いを取り除く',
-            body: `<h4>Mode 1: Structure Mode</h4>
-<p>以下の3つのみ適用：</p>
-<ul>
-  <li>Layer Elevation（抽象度の引き上げ）</li>
-  <li>Causal Mapping（因果線の整理）</li>
-  <li>Multi-Stakeholder Projection（主体ロジック）</li>
-</ul>
-<p>重すぎず、業務レベルで「思考の迷い」を取り除く用途</p>` },
-          { id: 'h-mode2', icon: '⚡', title: 'Mode 2: HasegawaOS Full', peek: '全レイヤー全面適用・深度MAX',
-            body: `<h4>Mode 2: HasegawaOS Full</h4>
-<ul>
-  <li>Core Direction / Method Layer / OS反射 / Answer Style をすべて全面適用</li>
-  <li>経営者・投資家・IR向けの"深度MAX"アウトプット</li>
-  <li>一言圧縮 / hidden value / 認知ギャップ / 10年視点</li>
-  <li>構造 → 本質 → 因果 → インセンティブ</li>
-  <li>最も"長谷川的"反応が出る</li>
-</ul>` },
-          { id: 'h-mode3', icon: '📈', title: 'Mode 3: IR・Analyst Execution Mode', peek: '実務で手が動くIR/Analyst特化',
-            body: `<h4>Mode 3: IR・Analyst Execution Mode</h4>
-<p>長谷川OSFull のうち、特に以下を強化：</p>
-<ul>
-  <li>Business Model分解（BS,CF構造理解含む）</li>
-  <li>Comps生成（Valuation / Strategic）</li>
-  <li>IR資料読解（行間・経営意思）</li>
-  <li>ロジックツリー、因果構造</li>
-  <li>財務（ポテンシャルROE / 定常状態）</li>
-</ul>
-<p>実務で"手が動く"構造に最適化</p>` },
-          { id: 'h-mode4', icon: '🎯', title: 'Mode 4: Converge & Commit Mode', peek: '議論を統合し最終方針を一本化',
-            body: `<h4>Mode 4: Converge & Commit Mode</h4>
-<ul>
-  <li>これまでの深掘り/議論内容を統合し、最終方針を一本化</li>
-  <li>TODO・マイルストーン・オーナー案を生成</li>
-  <li>深掘り質問（4-2）は原則出さず、「決めて動く」に集中</li>
-  <li>ユーザーが「結局何する？」「まとめて」「具体に落としたい」と言うと自動切替</li>
-  <li>Mode 2/3 の議論後に、AI側から切替提案してもよい</li>
-</ul>` },
-        ]
-      },
-      {
-        id: 'H2', label: '思考方向性 (Core Direction)', num: '1', color: 'blue', x: 600, y: 40,
+    swimlanes: true,
+    layerDefs: {
+      coreDirection: {
+        label: 'Core Direction', color: 'blue', num: '1',
         nodes: [
           { id: 'h-1-1', icon: '🗺️', title: '1-1. Inter-Layer Vision', peek: 'Macro→業界→商流→BM→財務→KPI→施策',
             body: `<h4>1-1. Inter-Layer Vision</h4>
@@ -587,8 +593,8 @@ const charts = {
 <p>評論ではなく、動かせる未来像。</p>` },
         ]
       },
-      {
-        id: 'H3', label: '処理系 (Method Layer)', num: '2', color: 'green', x: 600, y: 340,
+      methodLayer: {
+        label: 'Method Layer', color: 'green', num: '2',
         nodes: [
           { id: 'h-2-1', icon: '📊', title: '2-1. Comps: Val × Strategic', peek: '現状Comps＋未来Comps定義',
             body: `<h4>2-1. Comps：Valuation × Strategic</h4>
@@ -613,8 +619,8 @@ const charts = {
 <p>KPI → 行動 → 経済性 → CF → 価値 を線で扱う。</p>` },
         ]
       },
-      {
-        id: 'H4', label: '思考反射 (OS Reflexes)', num: '3', color: 'amber', x: 600, y: 680,
+      osReflexes: {
+        label: 'OS Reflexes', color: 'amber', num: '3',
         nodes: [
           { id: 'h-3-1', icon: '⬆️', title: '3-1. Layer Elevation Reflex', peek: '問いの抽象度を引き上げ本質を再定義',
             body: `<h4>3-1. Layer Elevation Reflex</h4>
@@ -645,8 +651,8 @@ const charts = {
 <p>構造 → 本質 → 因果 → インセンティブ の順序を守る。</p>` },
         ]
       },
-      {
-        id: 'H5', label: '回答スタイル (Answer)', num: '4', color: 'red', x: 600, y: 1080,
+      answerStyle: {
+        label: 'Answer Style', color: 'red', num: '4',
         nodes: [
           { id: 'h-4-1', icon: '✍️', title: '4-1. 本回答', peek: '冒頭に核の一言 / 曖昧語禁止',
             body: `<h4>4-1. 本回答</h4>
@@ -720,8 +726,8 @@ const charts = {
 <p class="sub">（Mode 4 では原則 4-2 は出さない）</p>` },
         ]
       },
-      {
-        id: 'H6', label: '信頼・牽引 (Engagement)', num: '5', color: 'gray', x: 600, y: 1420,
+      engagement: {
+        label: 'Engagement', color: 'gray', num: '5',
         nodes: [
           { id: 'h-5-1', icon: '🤝', title: '5-1. Professional Warmth', peek: '静かな知性 × 温度感',
             body: `<h4>5-1. Professional Warmth（静かな知性 × 温度感）</h4>
@@ -761,30 +767,101 @@ const charts = {
 </ul>` },
         ]
       },
-    ],
-    connections: [
-      // Mode 1 (Structure Mode) - dashed = partial/light
-      { from: 'h-mode1', to: 'H2', color: '#0969da', label: 'ライト適用', dash: true },
-      { from: 'h-mode1', to: 'H3', color: '#0969da', label: '一部', dash: true },
-      { from: 'h-mode1', to: 'H4', color: '#0969da', label: '3つのみ', dash: true },
-
-      // Mode 2 (HasegawaOS Full) - solid = full
-      { from: 'h-mode2', to: 'H2', color: '#cf222e', label: '全適用' },
-      { from: 'h-mode2', to: 'H3', color: '#cf222e', label: '全適用' },
-      { from: 'h-mode2', to: 'H4', color: '#cf222e', label: '全適用' },
-      { from: 'h-mode2', to: 'H5', color: '#cf222e', label: '4-1 + 4-2' },
-      { from: 'h-mode2', to: 'H6', color: '#cf222e', label: '全適用' },
-
-      // Mode 3 (IR/Analyst)
-      { from: 'h-mode3', to: 'H2', color: '#bf8700', label: '全適用' },
-      { from: 'h-mode3', to: 'H3', color: '#bf8700', label: '強化', dash: false },
-      { from: 'h-mode3', to: 'H4', color: '#bf8700', label: '全適用' },
-      { from: 'h-mode3', to: 'H5', color: '#bf8700', label: '4-1 + 4-2' },
-      { from: 'h-mode3', to: 'H6', color: '#bf8700', label: '全適用' },
-
-      // Mode 4 (Converge & Commit)
-      { from: 'h-mode4', to: 'H5', color: '#1a7f37', label: '4-1 + 4-3' },
-      { from: 'h-mode4', to: 'H6', color: '#1a7f37', label: '全適用' },
+    },
+    modes: [
+      {
+        id: 'mode0', icon: '🌐', title: 'Mode 0: Default',
+        subtitle: 'Pure GPT - 適用なし',
+        color: '#656d76',
+        peek: 'ChatGPT本来の自由推論と創造性を最大化',
+        body: `<h4>Mode 0: Default</h4>
+<ul>
+  <li>ChatGPT本来の自由推論と創造性を最大化</li>
+  <li>長谷川OSの適用は行わない（必要な時だけ最小限）</li>
+</ul>`,
+        pipeline: []
+      },
+      {
+        id: 'mode1', icon: '🧩', title: 'Mode 1: Structure',
+        subtitle: '構造化モード / OSライト',
+        color: '#0969da',
+        peek: '3つのみ適用で思考の迷いを取り除く',
+        body: `<h4>Mode 1: Structure Mode</h4>
+<p>以下の3つのみ適用：</p>
+<ul>
+  <li>Layer Elevation（抽象度の引き上げ）</li>
+  <li>Causal Mapping（因果線の整理）</li>
+  <li>Multi-Stakeholder Projection（主体ロジック）</li>
+</ul>
+<p>重すぎず、業務レベルで「思考の迷い」を取り除く用途</p>`,
+        pipeline: [
+          { ref: 'coreDirection', note: 'ライト適用', dash: true },
+          { ref: 'methodLayer', note: '一部', dash: true },
+          { ref: 'osReflexes', note: '3つのみ (3-1, 3-2, 3-3)', dash: true },
+        ]
+      },
+      {
+        id: 'mode2', icon: '⚡', title: 'Mode 2: Full',
+        subtitle: 'HasegawaOS 完全適用',
+        color: '#cf222e',
+        peek: '全レイヤー全面適用・深度MAX',
+        body: `<h4>Mode 2: HasegawaOS Full</h4>
+<ul>
+  <li>Core Direction / Method Layer / OS反射 / Answer Style をすべて全面適用</li>
+  <li>経営者・投資家・IR向けの"深度MAX"アウトプット</li>
+  <li>一言圧縮 / hidden value / 認知ギャップ / 10年視点</li>
+  <li>構造 → 本質 → 因果 → インセンティブ</li>
+  <li>最も"長谷川的"反応が出る</li>
+</ul>`,
+        pipeline: [
+          { ref: 'coreDirection', note: '全適用' },
+          { ref: 'methodLayer', note: '全適用' },
+          { ref: 'osReflexes', note: '全適用' },
+          { ref: 'answerStyle', note: '4-1 + 4-2' },
+          { ref: 'engagement', note: '全適用' },
+        ]
+      },
+      {
+        id: 'mode3', icon: '📈', title: 'Mode 3: IR/Analyst',
+        subtitle: '実務特化モード',
+        color: '#bf8700',
+        peek: '実務で手が動くIR/Analyst特化',
+        body: `<h4>Mode 3: IR・Analyst Execution Mode</h4>
+<p>長谷川OSFull のうち、特に以下を強化：</p>
+<ul>
+  <li>Business Model分解（BS,CF構造理解含む）</li>
+  <li>Comps生成（Valuation / Strategic）</li>
+  <li>IR資料読解（行間・経営意思）</li>
+  <li>ロジックツリー、因果構造</li>
+  <li>財務（ポテンシャルROE / 定常状態）</li>
+</ul>
+<p>実務で"手が動く"構造に最適化</p>`,
+        pipeline: [
+          { ref: 'coreDirection', note: '全適用' },
+          { ref: 'methodLayer', note: '強化' },
+          { ref: 'osReflexes', note: '全適用' },
+          { ref: 'answerStyle', note: '4-1 + 4-2' },
+          { ref: 'engagement', note: '全適用' },
+        ]
+      },
+      {
+        id: 'mode4', icon: '🎯', title: 'Mode 4: Converge',
+        subtitle: '収束・実行モード',
+        color: '#1a7f37',
+        peek: '議論を統合し最終方針を一本化',
+        body: `<h4>Mode 4: Converge & Commit Mode</h4>
+<ul>
+  <li>これまでの深掘り/議論内容を統合し、最終方針を一本化</li>
+  <li>TODO・マイルストーン・オーナー案を生成</li>
+  <li>深掘り質問（4-2）は原則出さず、「決めて動く」に集中</li>
+  <li>ユーザーが「結局何する？」「まとめて」「具体に落としたい」と言うと自動切替</li>
+  <li>Mode 2/3 の議論後に、AI側から切替提案してもよい</li>
+</ul>`,
+        pipeline: [
+          { ref: 'answerStyle', note: '4-1 + 4-3' },
+          { ref: 'engagement', note: '全適用' },
+        ]
+      },
     ]
   },
 };
@@ -808,36 +885,40 @@ svg.id = 'arrows-svg';
 function renderChart(key) {
   currentChart = key;
   const chart = charts[key];
-  allNodes = chart.layers.flatMap(l => l.nodes);
   layerEls = {};
 
   // Clear world
   world.innerHTML = '';
   world.appendChild(svg);
 
-  // Create layers
-  chart.layers.forEach(layer => {
-    const el = document.createElement('div');
-    el.className = 'layer';
-    el.dataset.color = layer.color;
-    el.dataset.lid = layer.id;
-    el.style.left = layer.x + 'px';
-    el.style.top = layer.y + 'px';
-    el.style.cursor = 'grab';
+  if (chart.swimlanes) {
+    renderSwimlanes(chart);
+  } else {
+    // Existing layer rendering for valuation/keyword
+    allNodes = chart.layers.flatMap(l => l.nodes);
+    chart.layers.forEach(layer => {
+      const el = document.createElement('div');
+      el.className = 'layer';
+      el.dataset.color = layer.color;
+      el.dataset.lid = layer.id;
+      el.style.left = layer.x + 'px';
+      el.style.top = layer.y + 'px';
+      el.style.cursor = 'grab';
 
-    let cardsHtml = '';
-    layer.nodes.forEach(n => {
-      cardsHtml += `<div class="node" data-nid="${n.id}">
-        <div class="node-inner"><span class="node-icon">${n.icon}</span><span class="node-title">${n.title}</span></div>
-        <div class="node-peek">${n.peek}</div>
-      </div>`;
+      let cardsHtml = '';
+      layer.nodes.forEach(n => {
+        cardsHtml += `<div class="node" data-nid="${n.id}">
+          <div class="node-inner"><span class="node-icon">${n.icon}</span><span class="node-title">${n.title}</span></div>
+          <div class="node-peek">${n.peek}</div>
+        </div>`;
+      });
+
+      el.innerHTML = `<div class="layer-label"><span class="num">${layer.num}</span>${layer.label}</div>
+        <div class="layer-cards">${cardsHtml}</div>`;
+      world.appendChild(el);
+      layerEls[layer.id] = el;
     });
-
-    el.innerHTML = `<div class="layer-label"><span class="num">${layer.num}</span>${layer.label}</div>
-      <div class="layer-cards">${cardsHtml}</div>`;
-    world.appendChild(el);
-    layerEls[layer.id] = el;
-  });
+  }
 
   // Update tabs
   document.querySelectorAll('.tab').forEach(t => {
@@ -847,74 +928,146 @@ function renderChart(key) {
   requestAnimationFrame(() => { drawArrows(); applyTransform(); });
 }
 
+function renderSwimlanes(chart) {
+  allNodes = [];
+  // Add mode bodies as nodes for modal lookup
+  chart.modes.forEach(m => {
+    allNodes.push({ id: m.id, icon: m.icon, title: m.title, body: m.body });
+  });
+  // Add all layerDef nodes
+  Object.values(chart.layerDefs).forEach(ld => {
+    ld.nodes.forEach(n => allNodes.push(n));
+  });
+
+  const laneHeaderWidth = 200;
+  const layerGap = 60;
+  const laneGap = 40;
+  const startX = 40;
+  const layerStartX = startX + laneHeaderWidth + layerGap;
+
+  // First pass: create all DOM elements
+  chart.modes.forEach((mode) => {
+    // Lane header
+    const header = document.createElement('div');
+    header.className = 'lane-header';
+    header.dataset.nid = mode.id;
+    header.style.left = startX + 'px';
+    header.style.top = '0px';
+    header.style.borderColor = mode.color;
+    header.style.background = mode.color + '08';
+    header.style.color = mode.color;
+    header.innerHTML = `<span class="lh-icon">${mode.icon}</span>
+      <span class="lh-title" style="color:${mode.color}">${mode.title}</span>
+      <span class="lh-sub">${mode.subtitle}</span>`;
+    header.addEventListener('click', () => openModal(mode.id));
+    world.appendChild(header);
+    layerEls['header-' + mode.id] = header;
+
+    if (mode.pipeline.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'lane-empty';
+      empty.style.left = layerStartX + 'px';
+      empty.style.top = '0px';
+      empty.textContent = 'Pure GPT \u2014 \u9577\u8c37\u5dddOS \u9069\u7528\u306a\u3057';
+      world.appendChild(empty);
+      layerEls['empty-' + mode.id] = empty;
+    } else {
+      mode.pipeline.forEach((step) => {
+        const ld = chart.layerDefs[step.ref];
+        const el = document.createElement('div');
+        el.className = 'layer';
+        el.dataset.color = ld.color;
+        el.dataset.lid = mode.id + '-' + step.ref;
+        el.style.position = 'absolute';
+        el.style.left = '0px';
+        el.style.top = '0px';
+        el.style.cursor = 'grab';
+
+        let cardsHtml = '';
+        ld.nodes.forEach(n => {
+          cardsHtml += `<div class="node" data-nid="${n.id}">
+            <div class="node-inner"><span class="node-icon">${n.icon}</span><span class="node-title">${n.title}</span></div>
+            <div class="node-peek">${n.peek}</div>
+          </div>`;
+        });
+
+        el.innerHTML = `
+          <div class="lane-note" style="color:${mode.color}">${step.note}</div>
+          <div class="layer-label"><span class="num">${ld.num}</span>${ld.label}</div>
+          <div class="layer-cards">${cardsHtml}</div>`;
+
+        world.appendChild(el);
+        layerEls[mode.id + '-' + step.ref] = el;
+      });
+    }
+  });
+
+  // Second pass: measure and position after DOM insertion
+  requestAnimationFrame(() => {
+    let yOff = 40;
+    chart.modes.forEach((mode) => {
+      const headerEl = layerEls['header-' + mode.id];
+      headerEl.style.top = yOff + 'px';
+
+      let maxH = headerEl.offsetHeight;
+
+      if (mode.pipeline.length === 0) {
+        const emptyEl = layerEls['empty-' + mode.id];
+        emptyEl.style.top = yOff + 'px';
+        maxH = Math.max(maxH, emptyEl.offsetHeight);
+      } else {
+        let xPos = layerStartX;
+        mode.pipeline.forEach((step) => {
+          const el = layerEls[mode.id + '-' + step.ref];
+          el.style.left = xPos + 'px';
+          el.style.top = (yOff + 24) + 'px'; // offset for note label
+          xPos += el.offsetWidth + layerGap;
+          maxH = Math.max(maxH, el.offsetHeight + 24);
+        });
+      }
+
+      yOff += maxH + laneGap;
+    });
+
+    drawArrows();
+  });
+}
+
 function drawArrows() {
   const chart = charts[currentChart];
   svg.innerHTML = '';
 
-  if (chart.connections) {
-    // Add markers for each color used
-    const colors = [...new Set(chart.connections.map(c => c.color))];
+  if (chart.swimlanes) {
+    // Swimlane arrows
     let defs = '<defs>';
-    colors.forEach(color => {
-      const id = 'ah-' + color.replace('#', '');
+    chart.modes.forEach(m => {
+      const id = 'ah-' + m.id;
       defs += `<marker id="${id}" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7" fill="${color}"/></marker>`;
+        <polygon points="0 0, 10 3.5, 0 7" fill="${m.color}"/></marker>`;
     });
     defs += '</defs>';
     svg.innerHTML = defs;
 
-    // Mode-based branching arrows
-    chart.connections.forEach(conn => {
-      const nodeEl = world.querySelector(`[data-nid="${conn.from}"]`);
-      const layerFromEl = nodeEl?.closest('.layer');
-      const layerToEl = world.querySelector(`[data-lid="${conn.to}"]`);
-      if (!nodeEl || !layerFromEl || !layerToEl) return;
+    chart.modes.forEach(mode => {
+      if (mode.pipeline.length === 0) return;
 
-      // Source: right edge of node, vertically centered
-      const layerFromX = parseFloat(layerFromEl.style.left);
-      const layerFromY = parseFloat(layerFromEl.style.top);
-      const nodeOffsetLeft = nodeEl.offsetLeft;
-      const nodeOffsetTop = nodeEl.offsetTop;
-      const sx = layerFromX + nodeOffsetLeft + nodeEl.offsetWidth;
-      const sy = layerFromY + nodeOffsetTop + nodeEl.offsetHeight / 2;
+      // Arrow from header to first pipeline layer
+      const headerEl = layerEls['header-' + mode.id];
+      const firstEl = layerEls[mode.id + '-' + mode.pipeline[0].ref];
+      if (headerEl && firstEl) {
+        drawSwimlaneArrow(headerEl, firstEl, mode.color, mode.pipeline[0].dash, mode.id);
+      }
 
-      // Target: left edge of target layer, vertically centered
-      const tx = parseFloat(layerToEl.style.left);
-      const ty = parseFloat(layerToEl.style.top) + layerToEl.offsetHeight / 2;
-
-      const gap = tx - sx;
-      const cpx = Math.max(gap * 0.35, 40);
-
-      const markerId = 'ah-' + conn.color.replace('#', '');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const d = `M ${sx} ${sy} C ${sx + cpx} ${sy}, ${tx - cpx} ${ty}, ${tx} ${ty}`;
-      path.setAttribute('d', d);
-      path.setAttribute('stroke', conn.color);
-      path.setAttribute('stroke-width', '2');
-      path.setAttribute('fill', 'none');
-      path.setAttribute('marker-end', `url(#${markerId})`);
-      path.setAttribute('opacity', '0.7');
-      if (conn.dash) path.setAttribute('stroke-dasharray', '6 4');
-      svg.appendChild(path);
-
-      // Label on the path
-      const pathId = 'p-' + conn.from + '-' + conn.to;
-      path.setAttribute('id', pathId);
-
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('font-size', '11');
-      text.setAttribute('fill', conn.color);
-      text.setAttribute('font-weight', '600');
-      text.setAttribute('dy', '-6');
-      const tp = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
-      tp.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathId);
-      tp.setAttribute('startOffset', '50%');
-      tp.setAttribute('text-anchor', 'middle');
-      tp.textContent = conn.label;
-      text.appendChild(tp);
-      svg.appendChild(text);
+      // Arrows between consecutive pipeline layers
+      for (let i = 0; i < mode.pipeline.length - 1; i++) {
+        const fromEl = layerEls[mode.id + '-' + mode.pipeline[i].ref];
+        const toEl = layerEls[mode.id + '-' + mode.pipeline[i + 1].ref];
+        if (fromEl && toEl) {
+          drawSwimlaneArrow(fromEl, toEl, mode.color, mode.pipeline[i + 1].dash, mode.id);
+        }
+      }
     });
-  } else {
+  } else if (chart.layers) {
     // Sequential layer-to-layer arrows (for valuation & keyword charts)
     svg.innerHTML = `<defs><marker id="ah" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
       <polygon points="0 0, 12 4, 0 8" fill="#b0b8c1"/></marker></defs>`;
@@ -940,8 +1093,36 @@ function drawArrows() {
   }
 }
 
+function drawSwimlaneArrow(fromEl, toEl, color, dash, modeId) {
+  const fL = parseFloat(fromEl.style.left);
+  const fT = parseFloat(fromEl.style.top);
+  const fR = fL + fromEl.offsetWidth;
+  const fCy = fT + fromEl.offsetHeight / 2;
+
+  const tL = parseFloat(toEl.style.left);
+  const tT = parseFloat(toEl.style.top);
+  const tCy = tT + toEl.offsetHeight / 2;
+
+  const gap = Math.max(tL - fR, 20);
+  const markerId = 'ah-' + modeId;
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', `M ${fR} ${fCy} C ${fR + gap * 0.4} ${fCy}, ${tL - gap * 0.4} ${tCy}, ${tL} ${tCy}`);
+  path.setAttribute('stroke', color);
+  path.setAttribute('stroke-width', '2.5');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('marker-end', `url(#${markerId})`);
+  path.setAttribute('opacity', '0.8');
+  if (dash) path.setAttribute('stroke-dasharray', '6 4');
+  svg.appendChild(path);
+}
+
 function switchChart(key) {
-  scale = 0.82; tx = 30; ty = 60;
+  if (key === 'hasegawa') {
+    scale = 0.55; tx = 20; ty = 20;
+  } else {
+    scale = 0.82; tx = 30; ty = 60;
+  }
   renderChart(key);
   document.getElementById('mode-legend').classList.toggle('show', key === 'hasegawa');
 }
@@ -961,14 +1142,18 @@ function closeModal(e) {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// ── Node click → modal ──
+// ── Node / Lane header click → modal ──
 world.addEventListener('click', e => {
   const nodeEl = e.target.closest('.node');
-  if (nodeEl && !layerDrag?.moved) openModal(nodeEl.dataset.nid);
+  if (nodeEl && !layerDrag?.moved) { openModal(nodeEl.dataset.nid); return; }
+  const headerEl = e.target.closest('.lane-header');
+  if (headerEl && !layerDrag?.moved) openModal(headerEl.dataset.nid);
 });
 
 // ── Layer drag ──
 world.addEventListener('mousedown', e => {
+  // Don't drag lane headers (they are clickable for modal)
+  if (e.target.closest('.lane-header')) return;
   const lEl = e.target.closest('.layer');
   if (!lEl) return;
   e.stopPropagation();
@@ -1001,10 +1186,13 @@ window.addEventListener('mousemove', e => {
 window.addEventListener('mouseup', () => {
   if (layerDrag) {
     const el = layerEls[layerDrag.lid];
-    el.style.cursor = 'grab';
+    if (el) el.style.cursor = 'grab';
     const chart = charts[currentChart];
-    const layer = chart.layers.find(l => l.id === layerDrag.lid);
-    if (layer) { layer.x = parseFloat(el.style.left); layer.y = parseFloat(el.style.top); }
+    // For non-swimlane charts, persist position back to data
+    if (chart.layers) {
+      const layer = chart.layers.find(l => l.id === layerDrag.lid);
+      if (layer) { layer.x = parseFloat(el.style.left); layer.y = parseFloat(el.style.top); }
+    }
     setTimeout(() => { layerDrag = null; }, 10);
     return;
   }
@@ -1012,7 +1200,7 @@ window.addEventListener('mouseup', () => {
 });
 
 canvasEl.addEventListener('mousedown', e => {
-  if (e.target.closest('.layer')) return;
+  if (e.target.closest('.layer') || e.target.closest('.lane-header')) return;
   panDragging = true; panLastX = e.clientX; panLastY = e.clientY;
 });
 
@@ -1032,7 +1220,11 @@ function applyTransform() {
   world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   updateMinimap();
 }
-function resetView() { scale = 0.82; tx = 30; ty = 60; applyTransform(); }
+function resetView() {
+  if (currentChart === 'hasegawa') { scale = 0.55; tx = 20; ty = 20; }
+  else { scale = 0.82; tx = 30; ty = 60; }
+  applyTransform();
+}
 
 function updateMinimap() {
   const mm = document.getElementById('minimap');
