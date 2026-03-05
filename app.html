@@ -87,7 +87,20 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 .node-peek { padding: 0 16px 8px; font-size: 11.5px; color: #656d76; line-height: 1.5; }
 
 /* ── Arrows SVG ── */
-#arrows-svg { position: absolute; top: 0; left: 0; width: 4000px; height: 1500px; pointer-events: none; }
+#arrows-svg { position: absolute; top: 0; left: 0; width: 4000px; height: 2500px; pointer-events: none; }
+
+#mode-legend {
+  position: fixed; bottom: 16px; left: 16px; z-index: 20;
+  background: rgba(255,255,255,0.95); border: 1px solid #d0d7de;
+  border-radius: 10px; padding: 14px 18px; font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: none;
+  line-height: 2;
+}
+#mode-legend.show { display: block; }
+#mode-legend h4 { font-size: 12px; font-weight: 800; margin-bottom: 6px; color: #424a53; }
+.legend-item { display: flex; align-items: center; gap: 8px; }
+.legend-line { width: 24px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+.legend-dash { width: 24px; height: 0; border-top: 3px dashed; flex-shrink: 0; }
 
 /* ── Modal ── */
 #modal-overlay {
@@ -182,6 +195,15 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 
 <div id="canvas"><div id="world"></div></div>
 <div id="minimap"><div id="minimap-viewport"></div></div>
+
+<div id="mode-legend">
+  <h4>Mode 接続凡例</h4>
+  <div class="legend-item"><span class="legend-line" style="background:#656d76"></span> Mode 0: 適用なし (Pure GPT)</div>
+  <div class="legend-item"><span class="legend-dash" style="border-color:#0969da"></span> Mode 1: ライト適用</div>
+  <div class="legend-item"><span class="legend-line" style="background:#cf222e"></span> Mode 2: 全適用 (Full)</div>
+  <div class="legend-item"><span class="legend-line" style="background:#bf8700"></span> Mode 3: 実務特化</div>
+  <div class="legend-item"><span class="legend-line" style="background:#1a7f37"></span> Mode 4: 収束・実行</div>
+</div>
 
 <div id="modal-overlay" onclick="closeModal(event)">
   <div id="modal">
@@ -494,7 +516,7 @@ const charts = {
     title: 'HasegawaOS',
     layers: [
       {
-        id: 'H1', label: 'モード選択', num: '0', color: 'purple', x: 40, y: 40,
+        id: 'H1', label: 'モード選択', num: '0', color: 'purple', x: 40, y: 280,
         nodes: [
           { id: 'h-mode0', icon: '🌐', title: 'Mode 0: Default', peek: 'ChatGPT本来の自由推論と創造性を最大化',
             body: `<h4>Mode 0: Default</h4>
@@ -543,7 +565,7 @@ const charts = {
         ]
       },
       {
-        id: 'H2', label: '思考方向性 (Core Direction)', num: '1', color: 'blue', x: 470, y: 40,
+        id: 'H2', label: '思考方向性 (Core Direction)', num: '1', color: 'blue', x: 600, y: 40,
         nodes: [
           { id: 'h-1-1', icon: '🗺️', title: '1-1. Inter-Layer Vision', peek: 'Macro→業界→商流→BM→財務→KPI→施策',
             body: `<h4>1-1. Inter-Layer Vision</h4>
@@ -566,7 +588,7 @@ const charts = {
         ]
       },
       {
-        id: 'H3', label: '処理系 (Method Layer)', num: '2', color: 'green', x: 900, y: 40,
+        id: 'H3', label: '処理系 (Method Layer)', num: '2', color: 'green', x: 600, y: 340,
         nodes: [
           { id: 'h-2-1', icon: '📊', title: '2-1. Comps: Val × Strategic', peek: '現状Comps＋未来Comps定義',
             body: `<h4>2-1. Comps：Valuation × Strategic</h4>
@@ -592,7 +614,7 @@ const charts = {
         ]
       },
       {
-        id: 'H4', label: '思考反射 (OS Reflexes)', num: '3', color: 'amber', x: 1320, y: 40,
+        id: 'H4', label: '思考反射 (OS Reflexes)', num: '3', color: 'amber', x: 600, y: 680,
         nodes: [
           { id: 'h-3-1', icon: '⬆️', title: '3-1. Layer Elevation Reflex', peek: '問いの抽象度を引き上げ本質を再定義',
             body: `<h4>3-1. Layer Elevation Reflex</h4>
@@ -624,7 +646,7 @@ const charts = {
         ]
       },
       {
-        id: 'H5', label: '回答スタイル (Answer)', num: '4', color: 'red', x: 1730, y: 40,
+        id: 'H5', label: '回答スタイル (Answer)', num: '4', color: 'red', x: 600, y: 1080,
         nodes: [
           { id: 'h-4-1', icon: '✍️', title: '4-1. 本回答', peek: '冒頭に核の一言 / 曖昧語禁止',
             body: `<h4>4-1. 本回答</h4>
@@ -699,7 +721,7 @@ const charts = {
         ]
       },
       {
-        id: 'H6', label: '信頼・牽引 (Engagement)', num: '5', color: 'gray', x: 2120, y: 40,
+        id: 'H6', label: '信頼・牽引 (Engagement)', num: '5', color: 'gray', x: 600, y: 1420,
         nodes: [
           { id: 'h-5-1', icon: '🤝', title: '5-1. Professional Warmth', peek: '静かな知性 × 温度感',
             body: `<h4>5-1. Professional Warmth（静かな知性 × 温度感）</h4>
@@ -739,6 +761,30 @@ const charts = {
 </ul>` },
         ]
       },
+    ],
+    connections: [
+      // Mode 1 (Structure Mode) - dashed = partial/light
+      { from: 'h-mode1', to: 'H2', color: '#0969da', label: 'ライト適用', dash: true },
+      { from: 'h-mode1', to: 'H3', color: '#0969da', label: '一部', dash: true },
+      { from: 'h-mode1', to: 'H4', color: '#0969da', label: '3つのみ', dash: true },
+
+      // Mode 2 (HasegawaOS Full) - solid = full
+      { from: 'h-mode2', to: 'H2', color: '#cf222e', label: '全適用' },
+      { from: 'h-mode2', to: 'H3', color: '#cf222e', label: '全適用' },
+      { from: 'h-mode2', to: 'H4', color: '#cf222e', label: '全適用' },
+      { from: 'h-mode2', to: 'H5', color: '#cf222e', label: '4-1 + 4-2' },
+      { from: 'h-mode2', to: 'H6', color: '#cf222e', label: '全適用' },
+
+      // Mode 3 (IR/Analyst)
+      { from: 'h-mode3', to: 'H2', color: '#bf8700', label: '全適用' },
+      { from: 'h-mode3', to: 'H3', color: '#bf8700', label: '強化', dash: false },
+      { from: 'h-mode3', to: 'H4', color: '#bf8700', label: '全適用' },
+      { from: 'h-mode3', to: 'H5', color: '#bf8700', label: '4-1 + 4-2' },
+      { from: 'h-mode3', to: 'H6', color: '#bf8700', label: '全適用' },
+
+      // Mode 4 (Converge & Commit)
+      { from: 'h-mode4', to: 'H5', color: '#1a7f37', label: '4-1 + 4-3' },
+      { from: 'h-mode4', to: 'H6', color: '#1a7f37', label: '全適用' },
     ]
   },
 };
@@ -803,32 +849,101 @@ function renderChart(key) {
 
 function drawArrows() {
   const chart = charts[currentChart];
-  svg.innerHTML = `<defs><marker id="ah" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
-    <polygon points="0 0, 12 4, 0 8" fill="#b0b8c1"/></marker></defs>`;
+  svg.innerHTML = '';
 
-  for (let i = 0; i < chart.layers.length - 1; i++) {
-    const aEl = layerEls[chart.layers[i].id];
-    const bEl = layerEls[chart.layers[i + 1].id];
-    const aL = parseFloat(aEl.style.left), aT = parseFloat(aEl.style.top);
-    const bL = parseFloat(bEl.style.left), bT = parseFloat(bEl.style.top);
-    const aR = aL + aEl.offsetWidth;
-    const aCy = aT + aEl.offsetHeight / 2;
-    const bCy = bT + bEl.offsetHeight / 2;
-    const gap = Math.max(bL - aR, 20);
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M ${aR} ${aCy} C ${aR + gap * 0.4} ${aCy}, ${bL - gap * 0.4} ${bCy}, ${bL} ${bCy}`);
-    path.setAttribute('stroke', '#b0b8c1');
-    path.setAttribute('stroke-width', '2');
-    path.setAttribute('stroke-dasharray', '6 4');
-    path.setAttribute('fill', 'none');
-    path.setAttribute('marker-end', 'url(#ah)');
-    svg.appendChild(path);
+  if (chart.connections) {
+    // Add markers for each color used
+    const colors = [...new Set(chart.connections.map(c => c.color))];
+    let defs = '<defs>';
+    colors.forEach(color => {
+      const id = 'ah-' + color.replace('#', '');
+      defs += `<marker id="${id}" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="${color}"/></marker>`;
+    });
+    defs += '</defs>';
+    svg.innerHTML = defs;
+
+    // Mode-based branching arrows
+    chart.connections.forEach(conn => {
+      const nodeEl = world.querySelector(`[data-nid="${conn.from}"]`);
+      const layerFromEl = nodeEl?.closest('.layer');
+      const layerToEl = world.querySelector(`[data-lid="${conn.to}"]`);
+      if (!nodeEl || !layerFromEl || !layerToEl) return;
+
+      // Source: right edge of node, vertically centered
+      const layerFromX = parseFloat(layerFromEl.style.left);
+      const layerFromY = parseFloat(layerFromEl.style.top);
+      const nodeOffsetLeft = nodeEl.offsetLeft;
+      const nodeOffsetTop = nodeEl.offsetTop;
+      const sx = layerFromX + nodeOffsetLeft + nodeEl.offsetWidth;
+      const sy = layerFromY + nodeOffsetTop + nodeEl.offsetHeight / 2;
+
+      // Target: left edge of target layer, vertically centered
+      const tx = parseFloat(layerToEl.style.left);
+      const ty = parseFloat(layerToEl.style.top) + layerToEl.offsetHeight / 2;
+
+      const gap = tx - sx;
+      const cpx = Math.max(gap * 0.35, 40);
+
+      const markerId = 'ah-' + conn.color.replace('#', '');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const d = `M ${sx} ${sy} C ${sx + cpx} ${sy}, ${tx - cpx} ${ty}, ${tx} ${ty}`;
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', conn.color);
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('marker-end', `url(#${markerId})`);
+      path.setAttribute('opacity', '0.7');
+      if (conn.dash) path.setAttribute('stroke-dasharray', '6 4');
+      svg.appendChild(path);
+
+      // Label on the path
+      const pathId = 'p-' + conn.from + '-' + conn.to;
+      path.setAttribute('id', pathId);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('font-size', '11');
+      text.setAttribute('fill', conn.color);
+      text.setAttribute('font-weight', '600');
+      text.setAttribute('dy', '-6');
+      const tp = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+      tp.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathId);
+      tp.setAttribute('startOffset', '50%');
+      tp.setAttribute('text-anchor', 'middle');
+      tp.textContent = conn.label;
+      text.appendChild(tp);
+      svg.appendChild(text);
+    });
+  } else {
+    // Sequential layer-to-layer arrows (for valuation & keyword charts)
+    svg.innerHTML = `<defs><marker id="ah" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#b0b8c1"/></marker></defs>`;
+
+    for (let i = 0; i < chart.layers.length - 1; i++) {
+      const aEl = layerEls[chart.layers[i].id];
+      const bEl = layerEls[chart.layers[i + 1].id];
+      const aL = parseFloat(aEl.style.left), aT = parseFloat(aEl.style.top);
+      const bL = parseFloat(bEl.style.left), bT = parseFloat(bEl.style.top);
+      const aR = aL + aEl.offsetWidth;
+      const aCy = aT + aEl.offsetHeight / 2;
+      const bCy = bT + bEl.offsetHeight / 2;
+      const gap = Math.max(bL - aR, 20);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${aR} ${aCy} C ${aR + gap * 0.4} ${aCy}, ${bL - gap * 0.4} ${bCy}, ${bL} ${bCy}`);
+      path.setAttribute('stroke', '#b0b8c1');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-dasharray', '6 4');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('marker-end', 'url(#ah)');
+      svg.appendChild(path);
+    }
   }
 }
 
 function switchChart(key) {
   scale = 0.82; tx = 30; ty = 60;
   renderChart(key);
+  document.getElementById('mode-legend').classList.toggle('show', key === 'hasegawa');
 }
 
 // ── Modal ──
