@@ -931,6 +931,21 @@ function renderChart(key) {
 
 function renderSwimlanes(chart) {
   allNodes = [];
+  // Add mode selection parent as a node for modal lookup
+  allNodes.push({
+    id: 'mode-selection',
+    icon: '🔀',
+    title: 'Mode Selection（モード選択）',
+    body: `<h4>Mode Selection（モード選択）</h4>
+<p>回答生成前に、以下の5つのモードのいずれかを<strong>自動判定またはユーザー指定</strong>で選択する。</p>
+<ul>
+  <li><strong>Mode 0: Default</strong> — GPTの自由度を最大化する"通常モード"</li>
+  <li><strong>Mode 1: Structure</strong> — 最低限の構造化だけ適用し"迷いを消すモード"</li>
+  <li><strong>Mode 2: Full</strong> — 長谷川OSを"フルスタックで乗せる最深モード"</li>
+  <li><strong>Mode 3: IR/Analyst</strong> — "実務で手が動く"IR/Analyst専用モード</li>
+  <li><strong>Mode 4: Converge</strong> — 議論を締め切り、"これで行く"を決めて具体タスクに落とすモード</li>
+</ul>`
+  });
   // Add mode bodies as nodes for modal lookup
   chart.modes.forEach(m => {
     allNodes.push({ id: m.id, icon: m.icon, title: m.title, body: m.body });
@@ -940,11 +955,33 @@ function renderSwimlanes(chart) {
     ld.nodes.forEach(n => allNodes.push(n));
   });
 
+  const parentWidth = 180;
+  const parentGap = 80;
   const laneHeaderWidth = 200;
   const layerGap = 60;
   const laneGap = 40;
   const startX = 40;
-  const layerStartX = startX + laneHeaderWidth + layerGap;
+  const laneStartX = startX + parentWidth + parentGap;
+  const layerStartX = laneStartX + laneHeaderWidth + layerGap;
+
+  // Create parent "Mode Selection" node
+  const parentNode = document.createElement('div');
+  parentNode.className = 'lane-header';
+  parentNode.dataset.nid = 'mode-selection';
+  parentNode.style.left = startX + 'px';
+  parentNode.style.top = '0px';
+  parentNode.style.width = parentWidth + 'px';
+  parentNode.style.borderColor = '#8250df';
+  parentNode.style.background = 'rgba(130,80,223,0.06)';
+  parentNode.style.color = '#8250df';
+  parentNode.style.minHeight = '120px';
+  parentNode.innerHTML = `<span class="lh-icon">🔀</span>
+    <span class="lh-title" style="color:#8250df">Mode Selection</span>
+    <span class="lh-sub">モード選択</span>
+    <span class="lh-sub" style="margin-top:4px;font-size:10px;">自動判定 or ユーザー指定</span>`;
+  parentNode.addEventListener('click', () => openModal('mode-selection'));
+  world.appendChild(parentNode);
+  layerEls['mode-selection-parent'] = parentNode;
 
   // First pass: create all DOM elements
   chart.modes.forEach((mode) => {
@@ -952,7 +989,7 @@ function renderSwimlanes(chart) {
     const header = document.createElement('div');
     header.className = 'lane-header';
     header.dataset.nid = mode.id;
-    header.style.left = startX + 'px';
+    header.style.left = laneStartX + 'px';
     header.style.top = '0px';
     header.style.borderColor = mode.color;
     header.style.background = mode.color + '08';
@@ -1030,6 +1067,12 @@ function renderSwimlanes(chart) {
       yOff += maxH + laneGap;
     });
 
+    // Vertically center the parent Mode Selection node
+    const pEl = layerEls['mode-selection-parent'];
+    const totalHeight = yOff - laneGap - 40; // total content height
+    const pHeight = pEl.offsetHeight;
+    pEl.style.top = (40 + (totalHeight - pHeight) / 2) + 'px';
+
     drawArrows();
   });
 }
@@ -1041,6 +1084,8 @@ function drawArrows() {
   if (chart.swimlanes) {
     // Swimlane arrows
     let defs = '<defs>';
+    defs += `<marker id="ah-parent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8250df"/></marker>`;
     chart.modes.forEach(m => {
       const id = 'ah-' + m.id;
       defs += `<marker id="${id}" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -1049,11 +1094,30 @@ function drawArrows() {
     defs += '</defs>';
     svg.innerHTML = defs;
 
+    // Arrows from parent Mode Selection → each lane header
+    const parentEl = layerEls['mode-selection-parent'];
+    if (parentEl) {
+      chart.modes.forEach(mode => {
+        const headerEl = layerEls['header-' + mode.id];
+        if (headerEl) {
+          drawSwimlaneArrow(parentEl, headerEl, '#8250df', false, 'parent');
+        }
+      });
+    }
+
     chart.modes.forEach(mode => {
-      if (mode.pipeline.length === 0) return;
+      const headerEl = layerEls['header-' + mode.id];
+
+      if (mode.pipeline.length === 0) {
+        // Arrow from header to empty placeholder
+        const emptyEl = layerEls['empty-' + mode.id];
+        if (headerEl && emptyEl) {
+          drawSwimlaneArrow(headerEl, emptyEl, mode.color, true, mode.id);
+        }
+        return;
+      }
 
       // Arrow from header to first pipeline layer
-      const headerEl = layerEls['header-' + mode.id];
       const firstEl = layerEls[mode.id + '-' + mode.pipeline[0].ref];
       if (headerEl && firstEl) {
         drawSwimlaneArrow(headerEl, firstEl, mode.color, mode.pipeline[0].dash, mode.id);
