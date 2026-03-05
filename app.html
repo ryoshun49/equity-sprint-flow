@@ -172,8 +172,8 @@ body { overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Hiragi
 <body>
 
 <div id="tab-bar">
-  <div class="tab active" data-chart="keyword" onclick="switchChart('keyword')">キーワード作成くん</div>
-  <div class="tab" data-chart="valuation" onclick="switchChart('valuation')">バリュエーション分析くん</div>
+  <div class="tab active" data-chart="valuation" onclick="switchChart('valuation')">バリュエーション分析くん</div>
+  <div class="tab" data-chart="keyword" onclick="switchChart('keyword')">キーワード作成くん</div>
 </div>
 <div id="controls">
   <button onclick="resetView()">Reset</button>
@@ -683,7 +683,7 @@ function updateMinimap() {
 }
 
 // Init
-renderChart('keyword');
+renderChart('valuation');
 window.addEventListener('resize', () => { drawArrows(); updateMinimap(); });
 </script>
 </body>
